@@ -1,0 +1,67 @@
+---
+title: "Wk 04: Data via Reddit API"
+---
+
+## Overview
+
+Let's use the Reddit API to create a new dataset to play with!
+
+## Accessing APIs
+
+
+
+## Using the Reddit API
+
+Even after getting a ton of blowback from the Reddit community for changing its API terms, the Reddit API is pretty generous from a research perspective. 
+
+ 
+
+### Install RedditExtractoR
+
+Documentation:[Reddit ExtractoR](https://github.com/ivan-rivera/RedditExtractor)
+
+```{r}
+# install RedditExtractoR
+#devtools::install_github('ivan-rivera/RedditExtractor')
+#library(RedditExtractoR)
+```
+
+RedditExtractor provides us some R functions to interact with the Reddit API:
+
+* `find_thread_urls()`
+* `get_thread_content()`
+
+## Extract posts/threads and thread comments
+
+### Extract posts
+```{r}
+# get a list of "top" posts on the technicalwriting subreddit 
+#tw_urls <- find_thread_urls(subreddit="technicalwriting", sort_by="top")
+
+# view the list
+#str(tw_urls)
+
+
+# create a table of the first 3 threads
+#library(kableExtra)
+#head(tw_urls, 3) %>%
+#  kbl()
+```
+
+### Use post/thread URLs to get comments
+
+Once we have a list of URLs, we can access each and grab its metadata and all the comments. 
+Depending on the number of thread URLs and comments on each, this may take a while...we could make a loop and add a pause or use [purrr](https://purrr.tidyverse.org/index.html), but let's just create separate requests manually for now. If you'd like to learn how to use purrr's map functions, [this demonstration](https://purrr.tidyverse.org/index.html) may be helpful.   
+
+```{r}
+# depending on the number of thread URLs and comments on each, this may take a while...we could make a loop and add a pause, but let's just create separate requests manually for now
+
+#threads_content_1 <- get_thread_content(tw_urls$url[0:30])
+#threads_content_2 <- get_thread_content(tw_urls$url[31:60])
+#threads_content_3 <- get_thread_content(tw_urls$url[90:107])
+
+#head(threads_content_1$comments, n=5)
+```
+
+
+

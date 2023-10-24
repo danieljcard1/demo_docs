@@ -1,0 +1,263 @@
+---
+title: "Wk 03: Exploring TC journals, (pt 2)"
+---
+
+## Overview
+
+Last week we started with a CSV of results for TC and a separate CSV of results for TCQ. We cleaned, explored, merged, and visualized the data before saving it out in two formats: an .RData file and a .csv. 
+
+This week we'll add two more journals...
+
+## Load libraries and data
+
+```{r}
+library(tidyverse)
+
+load("data/both_data.RData")
+```
+
+Let's confirm the data is what we expect.
+
+```{r}
+glimpse(both_data)
+```
+
+And recreate our plot.
+
+```{r}
+library(ggthemes)
+
+# count of articles by year, by journal
+year_plot <- ggplot(both_data, aes(x = publication_year)) +
+  geom_bar() +
+  labs(title = "Articles per Year in TC and TCQ",
+       x = "Publication Year",
+       y = "Number of Articles") +
+   facet_wrap(~ source_title, ncol = 1) +
+  geom_text(stat = 'count', aes(label = after_stat(count)), vjust = -0.5, size = 4)+
+  theme_economist_white()
+
+year_plot
+```
+
+## Read in new data
+
+I've gone to web of science and queried for articles published 2005 to present in two journals:
+
+* Journal of Business and Technical Communication
+* Written Communication
+
+Both are .xls files located in my data folder. 
+
+```{r}
+library(readxl)
+
+# read in JBTC data
+jbtc <- read_excel("data/wos_jbtc.xls")
+
+# read in Written Comm data
+wc <- read_excel("data/wos_wc.xls")
+
+```
+
+## Join datasets
+
+Our goal is to add our two new datasets into the TC and TCQ data we already created.
+
+### Check data
+
+Upon checking the dimensions of the data, I see I have a lot of data columns I don't need. 
+
+```{r}
+dim(jbtc)
+
+dim(wc)
+```
+
+### Clean names
+
+Before we can join the datasets, we have to clean names.
+
+```{r}
+library(janitor)
+
+# clean names of jbtc and wc 
+jbtc <- clean_names(jbtc)
+
+wc <- clean_names(wc)
+
+```
+
+### Combine jbtc and wc with bind_rows
+
+Because they have the same variables, we can use bind_rows
+```{r}
+# create a combined dataset with bind rows
+jbtc_wc <- bind_rows(wc, jbtc)
+
+# check dimensions
+dim(jbtc_wc)
+```
+
+### Select target columns
+
+We'll reuse our code from week 2 to select the columns of interest. 
+
+```{r}
+jbtc_wc <- jbtc_wc %>%
+  select(author_full_names,
+         article_title,
+         source_title,
+         abstract,
+         cited_references,
+         cited_reference_count,
+         publication_year,
+         publication_type)
+```
+
+### Join the two combined sets
+
+Before we join them, let's do some math to see how many articles we *should* end up with.
+
+```{r}
+# number of articles (rows) in both_data (TC and TCQ)
+tc_and_tcq <- nrow(both_data)
+
+# number of articles (rows) in jbtc_wc (JBTC and WC)
+jbtc_and_wc <- nrow(jbtc_wc)
+
+# The sum of articles in each
+print(tc_and_tcq + jbtc_and_wc)
+```
+
+Now, let's join them and see how many articles we *actually* end up with.
+
+```{r}
+# combine the two sets (tcq+tc and jbtc+wc)
+full_data <- bind_rows(both_data, jbtc_wc)
+
+# check the dimensions
+dim(full_data)
+```
+
+## Explore the full data
+
+```{r}
+# provides overview of numeric variables
+summary(full_data) 
+```
+
+Do we have all four journals represented?
+
+```{r}
+unique(full_data$source_title)
+```
+
+### Add journal abbreviation column
+
+For visualization purposes, let's add a new column of journal abbreviations
+
+```{r}
+# this dataframe maps each full name to an abbreviation
+journal_abbreviations <- data.frame(
+  full_name = c("TECHNICAL COMMUNICATION QUARTERLY", "TECHNICAL COMMUNICATION", "WRITTEN COMMUNICATION", "JOURNAL OF BUSINESS AND TECHNICAL COMMUNICATION"),
+  abbreviation = c("TCQ", "TC", "WC", "JBTC")
+)
+
+journal_abbreviations
+```
+Now we can merge the full data with the abbreviations
+
+```{r}
+# Merge the data frames to add the 'abbreviation' column
+full_data <- merge(full_data, journal_abbreviations, by.x = "source_title", by.y = "full_name", all.x = TRUE)
+
+unique(full_data$abbreviation)
+
+full_data[sample(1:nrow(full_data), 20, replace = FALSE),]
+```
+
+## Visualize the full data
+
+We'll try a few different displays.
+
+### Stacked bar
+
+```{r}
+# count of articles by year, by journal
+ggplot(full_data, aes(x = publication_year, fill = abbreviation)) +
+  geom_bar() +
+  labs(title = "Articles per Year in TC and TCQ",
+       x = "Publication Year",
+       y = "Number of Articles") +
+  theme_light()
+```
+
+### Faceted bar
+
+```{r}
+# count of articles by year, by journal
+ggplot(full_data, aes(x = publication_year)) +
+  geom_bar() +
+  labs(title = "Articles per Year",
+       x = "Publication Year",
+       y = "Number of Articles") +
+  geom_text(stat = 'count', aes(label = after_stat(count)), vjust = -0.5, size = 4) +
+   facet_wrap(~ abbreviation, ncol = 1) + # Change ncol as needed
+   theme_fivethirtyeight()
+```
+
+### Line and points
+
+For a line graph, we first have to create a new dataframe that includes article counts
+
+```{r}
+# Summarize the data to count the number of articles by source_title and publication_year
+article_counts <- full_data %>%
+  group_by(abbreviation, publication_year) %>%
+  summarise(article_count = n())
+
+glimpse(article_counts)
+
+head(article_counts)
+tail(article_counts)
+```
+Now we can create the plot.
+
+```{r}
+
+line <- ggplot(article_counts, aes(x = publication_year, y = article_count, color = abbreviation))+
+  geom_line() +
+  geom_point() +
+  labs(title = "Number of Articles Published Each Year by Journal",
+       x = "Publication Year",
+       y = "Number of Articles") +
+  theme_tufte()+
+  scale_color_discrete(name = "Journal") # change the label name of the color variable
+
+line
+```
+### Save a plot
+
+```{r}
+help(ggsave)
+ggsave("plots/full_data_line_plot.png", 
+       plot = line, 
+       width = 8, 
+       height = 6, 
+       dpi = 300,
+       bg = "white")
+```
+
+### Save out data
+
+```{r}
+# save as csv
+
+write_csv(full_data, "data_out/full_data.csv")
+
+
+save(full_data, file = "data_out/full_data.RData")
+
+```
+

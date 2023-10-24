@@ -1,0 +1,240 @@
+---
+title: "Wk 07: Topic Modelling Public Comments"
+execute: 
+  include: false
+---
+
+
+## resources
+
+* https://juliasilge.com/blog/evaluating-stm/
+* https://github.com/cschwem2er/stminsights
+* https://bookdown.org/paul/computational_social_science/lab-structural-topic-model.html
+
+
+
+```{r}
+
+library(tidyverse)
+library(tidytext)
+library(tidylo)
+library(stm)
+library(janitor)
+```
+
+```{r}
+data_raw <- read_csv("data/comments_twinmetalslease.csv")
+
+data_raw <- data_raw %>%
+  select(1:3) %>%
+  rename(
+    letter = `Letter #`,
+    org_name = `Organization Name`,
+    text = `Letter Text`
+  )
+
+glimpse(data_raw)
+
+```
+
+```{r}
+# tokenize 
+tidy_comms <- data_raw %>%
+  unnest_tokens(word, text)
+
+tidy_comms
+
+ 
+```
+
+```{r}
+comms_sparse <- tidy_comms %>%
+  count(letter, word) %>%
+  filter(n > 0) %>%
+  cast_sparse(letter, word, n)
+
+dim(comms_sparse)
+```
+
+38575 letters, 18866 unique tokens
+
+
+
+```{r}
+
+set.seed(123)
+topic_model <- stm(comms_sparse, K = 5, verbose = TRUE)
+```
+
+```{r}
+summary(topic_model)
+```
+
+```{r}
+table <- tidy(topic_model, matrix = "beta") %>%
+  group_by(topic) %>%
+  slice_max(beta, n = 10, ) %>%
+  mutate(rank = row_number()) %>%
+  ungroup() %>%
+  select(-beta) %>%
+  pivot_wider(
+    names_from = "topic", 
+    names_glue = "topic {.name}",
+    values_from = term
+  ) %>%
+  select(-rank)
+
+table
+```
+
+```{r}
+frex_table <- tidy(topic_model, matrix = "frex") %>%
+  group_by(topic) %>%
+  slice_head(n = 10) %>%
+  mutate(rank = row_number()) %>%
+  ungroup() %>%
+  pivot_wider(
+    names_from = "topic", 
+    names_glue = "topic {.name}",
+    values_from = term
+  ) %>%
+  select(-rank)
+
+frex_table
+```
+
+```{r}
+lift_table <- tidy(topic_model, matrix = "lift") %>%
+  group_by(topic) %>%
+  slice_head(n = 10) %>%
+  mutate(rank = row_number()) %>%
+  ungroup() %>%
+  pivot_wider(
+    names_from = "topic", 
+    names_glue = "topic {.name}",
+    values_from = term
+  ) %>%
+  select(-rank)
+
+lift_table
+```
+
+## K20
+
+
+```{r}
+topic_model_k20 <- stm(comms_sparse, K = 20, verbose = TRUE)
+```
+
+```{r}
+summary(topic_model_k20)
+```
+
+```{r}
+table_k20 <- tidy(topic_model, matrix = "beta") %>%
+  group_by(topic) %>%
+  slice_max(beta, n = 10, ) %>%
+  mutate(rank = row_number()) %>%
+  ungroup() %>%
+  select(-beta) %>%
+  pivot_wider(
+    names_from = "topic", 
+    names_glue = "topic {.name}",
+    values_from = term
+  ) %>%
+  select(-rank)
+
+table_k20
+```
+
+```{r}
+
+frex_table_k20 <- tidy(topic_model, matrix = "frex") %>%
+  group_by(topic) %>%
+  slice_head(n = 10) %>%
+  mutate(rank = row_number()) %>%
+  ungroup() %>%
+  pivot_wider(
+    names_from = "topic", 
+    names_glue = "topic {.name}",
+    values_from = term
+  ) %>%
+  select(-rank)
+
+frex_table_k20
+```
+
+```{r}
+lift_table_k20 <- tidy(topic_model, matrix = "lift") %>%
+  group_by(topic) %>%
+  slice_head(n = 10) %>%
+  mutate(rank = row_number()) %>%
+  ungroup() %>%
+  pivot_wider(
+    names_from = "topic", 
+    names_glue = "topic {.name}",
+    values_from = term
+  ) %>%
+  select(-rank)
+
+lift_table_k20
+```
+
+```{r}
+td_beta_k20 <- tidy(topic_model_k20)
+
+td_beta_k20
+```
+
+```{r}
+td_gamma_k20 <- tidy(topic_model_k20, matrix = "gamma",
+                 document_names = rownames(comms_sparse))
+
+td_gamma_k20
+```
+
+```{r}
+library(ggthemes)
+
+top_terms_k20 <- td_beta_k20 %>%
+  arrange(beta) %>%
+  group_by(topic) %>%
+  top_n(7, beta) %>%
+  arrange(-beta) %>%
+  select(topic, term) %>%
+  summarise(terms = list(term)) %>%
+  mutate(terms = map(terms, paste, collapse = ", ")) %>% 
+  unnest()
+
+gamma_terms_k20 <- td_gamma_k20 %>%
+  group_by(topic) %>%
+  summarise(gamma = mean(gamma)) %>%
+  arrange(desc(gamma)) %>%
+  left_join(top_terms_k20, by = "topic") %>%
+  mutate(topic = paste0("Topic ", topic),
+         topic = reorder(topic, gamma))
+
+gamma_terms_k20 %>%
+  top_n(20, gamma) %>%
+  ggplot(aes(topic, gamma, label = terms, fill = topic)) +
+  geom_col(show.legend = FALSE) +
+  geom_text(hjust = 0, nudge_y = 0.0005, size = 3,
+            family = "IBMPlexSans") +
+  coord_flip() +
+  scale_y_continuous()+
+  theme_tufte(base_family = "IBMPlexSans", ticks = FALSE) +
+  theme(plot.title = element_text(size = 16,
+                                  family="IBMPlexSans-Bold"),
+        plot.subtitle = element_text(size = 13)) +
+  labs(x = NULL, y = expression(gamma),
+       title = "Top 20 topics by prevalence in the TMM comments corpus",
+       subtitle = "With the top words that contribute to each topic")
+```
+
+```{r}
+gamma_terms_k20 %>%
+  select(topic, gamma, terms) %>%
+  knitr::kable(digits = 3, 
+        col.names = c("Topic", "Expected topic proportion", "Top 7 terms"))
+```
+

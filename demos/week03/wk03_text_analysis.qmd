@@ -1,0 +1,504 @@
+---
+title: "Wk 03: Exploring TC journals, (pt 3)"
+---
+
+## Overview
+
+We start with data from four journals
+
+## Load libraries and data
+
+For this analysis, we'll be using the R package [Quanteda: Quantitative Analysis of Textual Data](http://quanteda.io/index.html). 
+
+```{r}
+library(tidyverse)
+
+
+#install.packages("Rtools") # you may need to install Rtools to install all the quanteda packages
+
+#install.packages("remotes")
+
+#install.packages("quanteda")
+#install.packages("readtext")
+#install.packages("spacyr")
+#install.packages("quanteda.textmodels")
+#install.packages("quanteda.textstats")
+#install.packages("quanteda.textplots")
+#remotes::install_github("kbenoit/quanteda.dictionaries")
+
+library(quanteda)
+library(quanteda.dictionaries)
+library(quanteda.textmodels)
+library(quanteda.textplots)
+library(quanteda.textstats)
+```
+
+
+## Load data
+
+```{r}
+#install.packages("here")
+library(here)
+
+# Use "here" to set the working directory 
+here::here()
+
+getwd()
+
+# Use "here" to define the relative path to your data
+data_file <- here("demos/week03/data_out/full_data.RData")
+
+load(data_file)
+
+glimpse(full_data)
+```
+
+## Creating a Corpus object
+
+A Quanteda Corpus is a special form of a character vector that includes metadata about the corpus and the "documents" within the corpus. In this case, our corpus includes all the articles results in our CSV and each article is a document. 
+
+### Create a "text" column for analysis
+```{r}
+# Creates a new column in full_data from the title and abstract (separated by a tilde)
+full_data$text <- paste(full_data$article_title, full_data$abstract, sep = " ~ ")
+
+
+# check the column
+full_data$text[2:3]
+  
+```
+
+### Create the corpus
+
+```{r}
+# creates the corpus object
+corp <- corpus(full_data)
+
+# summary of the corpus (including metadata for the texts)
+summary(corp, n = 3)
+
+# Prints texts
+print(corp)
+
+```
+
+### Plot descriptive statistics
+
+
+#### Plot metadata: tokens per text, by journal
+```{r}
+# get metadata
+tokeninfo <- summary(corp, n = 1537)
+
+# plot
+if (require(ggplot2)) ggplot(data = tokeninfo, aes(x = publication_year, y = Tokens, group = abbreviation, color = abbreviation)) +
+  geom_point() + 
+  scale_x_continuous(labels = c(seq(2005, 2023, 3)),
+    breaks = seq(2005, 2023, 3)) + 
+  labs(
+  title = "Tokens per text over time",
+  subtitle = "Token counts by publication year",
+  x = "Publication Year",
+  y = "Tokens Count"
+  ) +
+  theme_bw()
+```
+
+
+#### Plot metadata: sentences per text, by journal
+
+We can plot sentences in the title+abstract for each article (and color-coded by journal)
+```{r}
+# how many unique sentence values are there?
+unique(tokeninfo$Sentences)
+
+# plot tokeninfo 
+if (require(ggplot2)) ggplot(data = tokeninfo, aes(x = publication_year, y = Sentences, group = abbreviation, color = abbreviation)) +
+  geom_point() + 
+  scale_x_continuous(labels = c(seq(2005, 2023, 3)),
+    breaks = seq(2005, 2023, 3)) + 
+  labs(
+  title = "Sentences per text over time",
+  subtitle = "Sentence counts by publication year",
+  x = "Publication Year",
+  y = "Sentence Count"
+  ) +
+  theme_bw()
+
+
+```
+But wait, where are all the JBTC articles?!
+
+```{r}
+# get a list of unique sentence lengths in JBTC title+abstracts
+unique(tokeninfo$Sentences[tokeninfo$abbreviation == "JBTC"])
+
+# get a list of unique years among JBTC observations
+unique(tokeninfo$publication_year[tokeninfo$abbreviation == "JBTC"])
+```
+It seems like we have JBTC articles of varying sentence length across multiple years...
+
+
+### Subset a corpus
+
+Let's investigate further. Use the `corpus_subset` function to keep only texts from JBTC.
+
+```{r}
+# corpus_subset(corp, abbreviation == "JBTC")
+
+jbtc_tokeninfo <- summary(corpus_subset(corp, abbreviation == "JBTC"), n = 300)
+```
+
+Then visualize sentence counts again, this time for just JBTC...
+
+```{r}
+if (require(ggplot2)) ggplot(data = jbtc_tokeninfo, aes(x = publication_year, y = Sentences)) +
+  geom_point() + 
+  scale_x_continuous(labels = c(seq(2005, 2023, 3)),
+    breaks = seq(2005, 2023, 3)) + 
+  labs(
+  title = "JBTC: Sentences per text over time",
+  subtitle = "Sentence counts in JBTC",
+  x = "Publication Year",
+  y = "Sentence Count"
+  ) +
+  theme_bw()
+```
+Ok, so maybe it's just a problem with the plot?
+
+### Add a layer: # of observations with x sentences
+
+```{r}
+
+# use geom_count instead of geom_point to let size reflect the count of the points
+  
+ggplot(data = jbtc_tokeninfo, aes(x = publication_year, y = Sentences)) +
+  geom_count() + 
+  scale_x_continuous(labels = c(seq(2005, 2023, 3)),
+    breaks = seq(2005, 2023, 3)) + 
+  labs(
+  title = "JBTC: Sentences per text over time",
+  subtitle = "Sentence counts in JBTC",
+  x = "Publication Year",
+  y = "Sentence Count"
+  ) +
+  theme_bw()
+```
+
+### Add size to all journal sentence counts
+
+```{r}
+ggplot(data = tokeninfo, aes(x = publication_year, y = Sentences, group = abbreviation, color = abbreviation)) +
+  geom_count() + 
+  scale_x_continuous(labels = c(seq(2005, 2023, 3)),
+    breaks = seq(2005, 2023, 3)) + 
+  labs(
+  title = "Sentences per text over time",
+  subtitle = "Sentence counts by publication year",
+  x = "Publication Year",
+  y = "Sentence Count"
+  ) +
+  theme_bw()
+```
+It's not perfect, but definitely better. 
+
+## Exploring corpus texts
+
+But token and sentence counts probably aren't the most interesting aspect of the titles and abstracts...
+
+### KWIC: search for patterns
+
+We can search for patterns in multiple ways:
+
+* single word: `kwic(data_tokens, pattern = "usability")`
+* string of characters: `kwic(data_tokens, pattern = "user-*")`
+* phrase: `kwic(data_tokens, phrase("social justice"))`
+
+
+#### KWIC for "usability"
+
+We can search for usability and surrounding words. 
+
+::: {.callout-note title="Quanteda Tokens object"}
+Tokens: Each element of a tokens object typically represents a single word or a term. However, tokens can also represent larger text units such as sentences or paragraphs, depending on the tokenization process applied.
+:::
+
+
+
+```{r}
+# create a tokens object
+data_tokens <- tokens(corp)
+
+# data, pattern, number of tokens before and after 
+kwic_usability <- kwic(data_tokens, pattern = "usability", 5) 
+
+# display the first 10 matches
+kwic_usability[0:10]
+
+# display the last 6 matches
+tail(kwic_usability)
+
+# chart using kableExtra (for markdown to html version)
+library(kableExtra)
+head(kwic_usability) %>%
+  kbl() %>%
+  kable_minimal()
+  
+```
+
+
+#### KWIC for user-x
+
+```{r}
+
+kwic_userx <- kwic(data_tokens, pattern = "user-*", 3)
+
+head(kwic_userx)
+
+```
+
+#### KWIC for "social justice"
+
+```{r}
+# show context of the first six occurrences of 'social justice'
+kwic(data_tokens, pattern = phrase("social justice")) %>%
+    head()
+```
+
+
+
+### The tokens object
+
+Let's dig into the tokens object.
+
+```{r}
+tokens <- tokens(corp)
+
+tokens[1:3]
+
+```
+
+Notice what counts as a token by default.
+
+### Preprocessing
+
+We may want to remove certain words or characters that aren't salient for our analysis
+
+
+#### Remove punctuation, separators, and numbers
+```{r}
+# create a tokens object without punctuation, separators, and numbers
+tokens <- tokens(corp, remove_punct = TRUE,
+                 remove_separators = TRUE,
+                 remove_numbers = TRUE)
+
+# check the result
+tokens[1:3]
+
+```
+
+#### Remove stopwords and more
+
+```{r}
+# see list of stopwords
+head(stopwords("en"), 15)
+
+# remove stopwords
+tokens <- tokens %>%
+  tokens_remove(stopwords("en")) %>%
+  tokens_remove("~")
+
+# check the result
+tokens[1:3]
+```
+
+
+### Creating a document-feature matrix
+
+Quanteda uses a data structure called a document-feature matrix:
+
+* Document: In a DFM, each row represents a document or text unit. This can be a single document, a sentence, a paragraph, or any other defined text unit. In our case, it's a title + abstract.
+
+* Feature: Each column represents a feature, typically a word or a term that appears in the documents. These features are usually extracted from the text through tokenization, and they can be single words or multi-word phrases.
+
+* Matrix: The DFM is a two-dimensional matrix where the rows correspond to documents, and the columns correspond to features. The values in the matrix represent the frequency of each feature in each document, but they can also be transformed into other measures such as term frequency-inverse document frequency (TF-IDF) scores.
+
+```{r}
+# create the dfm
+dfm <- tokens(corp, remove_punct = TRUE,
+              remove_separators = TRUE,
+              remove_numbers = TRUE) %>%
+  tokens_remove(stopwords("en")) %>%
+  tokens_remove("~") %>%
+  dfm()
+
+# view the dfm
+print(dfm)
+
+```
+
+
+::: {.callout-note title="Sparse matrices"}
+In this context, "sparse" refers to a type of data structure used to efficiently work with large data. In a sparse matrix, the majority of the elements have a value of zero. If your dfm is 99.56% sparse, it means that only .04% of the entries are something other than 0.  
+:::
+
+
+#### Create a wordcloud
+
+```{r}
+# simple wordcloud
+textplot_wordcloud(dfm)
+
+# wordcloud with parameters
+set.seed(100)
+textplot_wordcloud(dfm, 
+                   min_count = 20, # include word only if it occurs at least n times in data set 
+                   random_order = FALSE, 
+                   rotation = 0.25,
+    color = RColorBrewer::brewer.pal(8, "Dark2"))
+```
+
+
+#### View top features
+
+```{r}
+# 20 most frequent words
+topfeatures(dfm, 20)
+
+```
+
+### DFM: Grouping by variables
+
+```{r}
+# group the dfm by a variable (docvar): journal
+dfm_journ <- dfm %>%
+  dfm_group(groups = abbreviation)
+
+# sort features by frequency and then view
+dfm_sort(dfm_journ)
+```
+
+#### Create a comparison cloud
+
+```{r}
+# cloud that compares top features for each journal
+comparison_cloud <- dfm_journ %>%
+  dfm_trim(min_termfreq = 25,
+           verbose = FALSE) %>%
+  textplot_wordcloud(comparison = TRUE)
+
+```
+
+It's common joke in computational humanities and social scientists that "colleagues don't let colleagues make wordclouds," but maybe this one can help us generate or refine some RQs? 
+
+#### Plot relative frequencies
+
+Quanteda's `texstat_frequency` allows to plot the most frequent words in terms of relative frequency by group
+
+```{r}
+#help("dfm_weight")
+#help("textstat_frequency")
+
+# calculate the proportional weight (the proportion of the feature count relative to total feature count)
+dfm_weight_journ <- dfm_journ %>%
+  dfm_weight(scheme = "prop")
+
+# Calculate relative frequency by journal
+freq_weight <- textstat_frequency(dfm_weight_journ, n = 15, 
+                                  groups = dfm_weight_journ$abbreviation)
+
+ggplot(data = freq_weight, aes(x = nrow(freq_weight):1, y = frequency)) +
+     geom_point() +
+     facet_wrap(~ group, scales = "free") +
+     coord_flip() +
+     scale_x_continuous(breaks = nrow(freq_weight):1,
+                        labels = freq_weight$feature) +
+     labs(x = NULL, 
+          y = "Relative frequency",
+          title = "Most frequent terms as a proportion of terms in the journal")
+```
+
+It seems like some of these terms are parts of phrases, no?
+
+
+## More, hastily
+
+### Plot "keyness" in TCQ and TC
+
+Keyness is a score for top features that occur differentially across categories or groups. 
+
+```{r}
+# get info on "keyness"
+help("textstat_keyness")
+
+
+# Subset initial corpus to retain TCQ and TC 
+tc_v_tcq_corpus <- corpus_subset(corp, 
+                            abbreviation %in% c("TCQ", "TC"))
+
+# Create a dfm grouped by journal (abbreviation)
+tc_v_tcq_dfm <- tokens(tc_v_tcq_corpus, remove_punct = TRUE) %>%
+  tokens_remove(stopwords("english")) %>%
+  tokens_remove("~") %>%
+  tokens_group(groups = abbreviation) %>%
+  dfm()
+
+# Calculate keyness and determine TC as target group
+result_keyness <- textstat_keyness(tc_v_tcq_dfm, target = "TC")
+
+# Plot estimated word keyness
+textplot_keyness(result_keyness) 
+```
+
+### Ngrams
+
+You can generate n-grams from a tokens object using `tokens_ngrams()`. 
+
+```{r}
+# creating a tokens object from a corpus
+toks <- tokens(corp, remove_punct = TRUE,
+              remove_separators = TRUE,
+              remove_numbers = TRUE) %>%
+  tokens_remove(stopwords("en")) %>%
+  tokens_remove("~")
+
+
+# generating ngrams from a tokens object
+
+toks_ngram <- tokens_ngrams(toks, n = 2) # specify combinations, e.g. 2 and 3 word combos -> (toks, n = 2:3)
+
+
+# view result: first 10 ngrams in the first article
+head(toks_ngram[[1]], 10)
+
+# view result: last 10 ngrams in the first article
+tail(toks_ngram[[1]], 10)
+
+```
+
+
+#### DFM with bigrams
+
+```{r}
+# create dfm from bigrams tokens object and group by journal 
+dfm_bigrams <- toks_ngram %>%
+  dfm() %>%
+  dfm_group(groups = abbreviation)
+
+# another wordcloud...why not!
+set.seed(101)
+textplot_wordcloud(dfm_bigrams, 
+                   min_count = 20, # include word only if it occurs at least n times in data set 
+                   random_order = FALSE, 
+                   rotation = 0.25,
+    color = RColorBrewer::brewer.pal(8, "Dark2"))
+
+# cloud that compares top bigrams for each journal
+dfm_bigrams %>%
+  dfm_trim(min_termfreq = 15,
+           verbose = FALSE) %>%
+  textplot_wordcloud(comparison = TRUE)
+```
+
+
+

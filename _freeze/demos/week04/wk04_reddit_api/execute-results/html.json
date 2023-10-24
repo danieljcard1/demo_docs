@@ -1,0 +1,16 @@
+{
+  "hash": "86a94f619e2f22f966ee388d393d3876",
+  "result": {
+    "markdown": "---\ntitle: \"Wk 04: Data via Reddit API\"\n---\n\n\n## Overview\n\nLet's use the Reddit API to create a new dataset to play with!\n\n## Accessing APIs\n\n\n\n## Using the Reddit API\n\nEven after getting a ton of blowback from the Reddit community for changing its API terms, the Reddit API is pretty generous from a research perspective. \n\n \n\n### Install RedditExtractoR\n\nDocumentation:[Reddit ExtractoR](https://github.com/ivan-rivera/RedditExtractor)\n\n\n::: {.cell}\n\n```{.r .cell-code}\n# install RedditExtractoR\n#devtools::install_github('ivan-rivera/RedditExtractor')\n#library(RedditExtractoR)\n```\n:::\n\n\nRedditExtractor provides us some R functions to interact with the Reddit API:\n\n* `find_thread_urls()`\n* `get_thread_content()`\n\n## Extract posts/threads and thread comments\n\n### Extract posts\n\n::: {.cell}\n\n```{.r .cell-code}\n# get a list of \"top\" posts on the technicalwriting subreddit \n#tw_urls <- find_thread_urls(subreddit=\"technicalwriting\", sort_by=\"top\")\n\n# view the list\n#str(tw_urls)\n\n\n# create a table of the first 3 threads\n#library(kableExtra)\n#head(tw_urls, 3) %>%\n#  kbl()\n```\n:::\n\n\n### Use post/thread URLs to get comments\n\nOnce we have a list of URLs, we can access each and grab its metadata and all the comments. \nDepending on the number of thread URLs and comments on each, this may take a while...we could make a loop and add a pause or use [purrr](https://purrr.tidyverse.org/index.html), but let's just create separate requests manually for now. If you'd like to learn how to use purrr's map functions, [this demonstration](https://purrr.tidyverse.org/index.html) may be helpful.   \n\n\n::: {.cell}\n\n```{.r .cell-code}\n# depending on the number of thread URLs and comments on each, this may take a while...we could make a loop and add a pause, but let's just create separate requests manually for now\n\n#threads_content_1 <- get_thread_content(tw_urls$url[0:30])\n#threads_content_2 <- get_thread_content(tw_urls$url[31:60])\n#threads_content_3 <- get_thread_content(tw_urls$url[90:107])\n\n#head(threads_content_1$comments, n=5)\n```\n:::\n",
+    "supporting": [
+      "wk04_reddit_api_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

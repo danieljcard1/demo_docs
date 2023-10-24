@@ -1,0 +1,25 @@
+---
+title: "Wk 05: NYT API Data"
+---
+
+## Overview
+
+There are lots of APIs. The NYT has a good one we can use to practice. 
+
+## Libraries
+
+I'm using an [R package "nytimes"](https://github.com/news-r/nytimes) to access the API. 
+
+```{r}
+#install.packages("remotes")
+remotes::install_github("news-r/nytimes")
+```
+
+We also need an API key from the [New York Times API](https://developer.nytimes.com/). 
+
+Sign up for an account, create an app, enable desired parts of the API, and get your API key
+
+```{r}
+
+```
+

@@ -1,0 +1,13 @@
+---
+title: "Computational Rhetorics"
+listing: 
+  type: grid
+  sort: "title asc"
+  grid-columns: 2
+  grid-item-border: true
+---
+
+This site is for use in WRIT 8520: Computational Rhetorics. The code and documentation found here is offered as is with no guarantee of utility for anyone in any context. Enjoy!
+
+
+

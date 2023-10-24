@@ -1,0 +1,349 @@
+---
+title: "Wk 07: Topic Modelling CMV"
+execute:
+  include: false
+---
+
+
+## Overview
+
+This week we're exploring topic modelling with the goal of continuing our discussion of the relationship between interpretive work and computational processes in rhetorical-computational inquiry. We read . 
+
+The demo that follows relies heavily on resources from [Quanteda](https://quanteda.io/) and this [fantastic topic modelling tutorial from Valerie Hase](https://bookdown.org/valerie_hase/TextasData_HS2021/tutorial-13-topic-modeling.html) (yes, as in **Schafer & Hase**).
+
+
+### The Data
+
+The data comes from the subreddit r/changemyview (cmv) and consists of comments, each belonging to a single thread.
+
+Threads in cmv begin with a submission in which the original poster (op) articulates a view they hold and invites participants to try to change that view.
+
+The current dataset was collected by querying the reddit API (prior to recent API changes) for submissions that contained one of the following phrases:
+
+* climate change
+* global warming
+* climate crisis
+
+The resulting set was then narrowed to remove submissions that weren't primarily about climate. The resulting dataset consists of 19,863 comments belonging to 210 threads. 
+
+To provide you a sense of the data, here are [sample transcripts](https://drive.google.com/drive/folders/1xQY9-Yy8qKi2YQXLmStvei71g5AYKtW7?usp=sharing) of two threads.
+
+### Topic modelling
+
+Topic modelling is typically considered an unsupervised machine learning technique used to surface latent themes or topics by measuring co-occurrence of words across documents within a corpus.
+
+Importantly, the researcher defines the number of topics (typically denoted by K) and documents are assumed to feature a mix of topics. 
+
+The output is essentially probabilities to determine:
+
+* that words/features are prevalent in a topic
+* that a topic is prevalent in a document
+
+Typically, these probabilities are used to generate lists of words that ostensibly correspond to latent topics. In addition to specifying the number of topics, the researcher must assign labels to topics by interpreting these word lists. 
+
+### Load libraries and data
+
+We'll be using Quanteda for some preprocessing and then [the R package STM](https://www.structuraltopicmodel.com/) for the actual topic modelling. 
+
+
+```{r}
+library(quanteda)
+library(quanteda.textplots)
+library(quanteda.textstats)
+library(tidyverse)
+library(stm)
+library(ggplot2)
+library(reshape2)
+```
+
+
+Read in and check data
+
+
+```{r}
+data <- read_csv("data/merged_cmv_comms.csv")
+
+glimpse(data)
+```
+
+## Data preparation
+
+### Remove ">" character
+
+```{r}
+char <- data %>%
+  filter(grepl(">", body))
+
+data$body <- gsub(pattern = ">", replacement = " ", x = data$body)
+```
+
+
+### Create a corpus object from the "body" column
+
+In our data, each observation within the "body" column corresponds to one comment. 
+
+
+```{r}
+# create the corpus object
+corp <- corpus(data, text_field = "body")
+
+# view a summary of the corpus
+summary(corp, 5)
+
+```
+
+View the document varables (metadata fields for each comment)
+
+```{r}
+# view the document variables
+head(docvars(corp))
+```
+
+
+We can then change the document names (docid) to be something human readable
+
+```{r}
+# set docid to include id (comment), thead_id, and author (name)
+
+docid <- paste(
+  data$id,
+  data$thread_id,
+  data$author,
+  sep = " "
+)
+
+# set the docnames to the docid
+docnames(corp) <- docid
+
+# view to confirm new docnames
+head(corp)
+```
+
+
+Change the corpus unit to sentences
+
+```{r}
+#change unit to sentences
+ndoc(corp) # 19863 comments
+
+corp_sent <- corpus_reshape(corp, to = "sentences")
+
+ndoc(corp_sent) # 104118 sentences
+
+head(corp_sent)
+```
+
+
+### Create the tokens object
+
+We'll tokenize the corpus, removing stopwords (a choice subject to some controversy) and punctuation.
+
+
+```{r}
+# Create a tokens object (punctuation and stopwords removed)
+
+toks <- tokens(corp, remove_punct = TRUE,) %>%
+  tokens_select(pattern = stopwords("en"), selection = "remove")
+
+```
+
+
+We'll also find multi-word combinations statistically and subsequently store these. 
+
+
+```{r}
+
+# Finding multi-word combinations statistically (can be joined for future analysis)
+
+tstat_col_cap <- textstat_collocations(toks, min_count = 10, tolower = TRUE)
+
+head(tstat_col_cap, 50)
+
+
+# Compound and store for kwic: high z scores (most likely to actually be compound)
+toks_comp_z <- tokens_compound(toks, pattern = tstat_col_cap[tstat_col_cap$z > 10,], 
+                             case_insensitive = TRUE)
+
+head(toks_comp_z, 50)
+```
+
+
+### sidebar: kwic
+
+
+```{r}
+kw_comp_z <- kwic(toks_comp_z, pattern = c("Climate_*", "Global_*"))
+
+head(kw_comp_z, 10)
+
+tail(kw_comp_z, 10)
+
+```
+
+
+
+### Create the document-feature matrix
+
+We'll create the dfm. Note that we are using trim to reduce the number of features:
+
+* min_docfreq = *x*. here we drop words to occur in less than *x* percent of documents
+* max_docfreq = *x*. here we drop words that occur in more than 99 percent of documents
+
+
+```{r}
+
+dfm_comp_z <- dfm(toks_comp_z) %>% 
+              dfm_trim(min_docfreq = 0.0001,
+                       max_docfreq = 0.99, docfreq_type = "prop",
+                       verbose = TRUE)
+
+head(dfm_comp_z, 5)
+
+# Get top n features (note: dfm_comp_z excludes words appearing in more than 99% of all documents (comments))
+features_dfm_comp_z <- textstat_frequency(dfm_comp_z, n = 50)
+
+features_dfm_comp_z$feature <- with(features_dfm_comp_z, reorder(feature, -frequency))
+
+ggplot(features_dfm_comp_z, aes(x = feature, y = frequency)) +
+    geom_point() + 
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+
+## Structural Topic Modelling
+
+Structural Topic Modeling (STM) is a topic modeling technique that extends traditional topic modeling approaches, such as Latent Dirichlet Allocation (LDA) or Non-Negative Matrix Factorization (NMF), by incorporating document-level covariates and metadata.
+
+
+### Convert our dfm to stm
+
+First we need to convert out dfm to the right format for the stm package
+
+
+```{r}
+dfm_stm <- convert(dfm_comp_z, to = "stm")
+```
+
+
+
+### STOP: This step takes a LOT of compute. Don't run!
+
+Here, we try to get around to arbitrary nature of guessing a k value by running the topic model with multiple different k values. In this case, I've run the model for k values of 5 through 40. And in full disclosure, I decided to stop at 40 based on a prior iteration of this analysis with the same data.
+
+At any rate, in the searchK function below we:
+
+* treat our comments as documents
+* use the feature least we generated while working in quanteda (combined words, no stopwords or punctuation, and trimmed)
+* run for k values from 5 to 40
+* stop each model after 75 iterations (higher would likely produce better results)
+* set verbose to true so we can follow the progress in the console
+
+Instead of running this
+
+
+```{r}
+
+# Used to find the "right" number of topics
+
+K <- c(5:40)
+fit <- searchK(dfm_stm$documents, dfm_stm$vocab,
+               K = K,
+               max.em.its=75,
+               verbose = TRUE)
+
+```
+
+
+The model for each k value includes some metrics we can use to evaluate the "quality" of our topics based on statistical fit. Following Hase (who adapts [code from Julia Silge](https://juliasilge.com/blog/evaluating-stm/)), we'll focus on two metrics:
+
+* **semantic coherence** is a measure of how often the features in the topic co-occur (i.e., strength of co-occurence). Higher values imply a stronger semantic relationship.
+* **exclusivity** is a measure how much overlap there is among topic features. A word is considered more exclusive to a topic if its probability in that topic is significantly higher than its probability of being in other topics. The exclusivity value is typically an average for the features in the topic; higher values indicate greater exclusivity. 
+
+
+```{r}
+
+plot <- data.frame("K" = K, 
+                   "Coherence" = unlist(fit$results$semcoh),
+                   "Exclusivity" = unlist(fit$results$exclus))
+
+#plot
+
+# Reshape to long format
+
+library("reshape2")
+plot <- melt(plot, id=c("K"))
+
+plot
+
+
+
+library("ggplot2")
+
+
+ggplot(plot, aes(K, value, color = variable)) +
+  geom_line(linewidth = 1, show.legend = FALSE) +
+  facet_wrap(~variable,scales = "free_y") +
+  labs(x = "Number of topics K",
+       title = "Statistical fit of models with different K")
+
+searchk_fit <- ggplot(plot, aes(K, value, color = variable)) +
+  geom_line(linewidth = 1, show.legend = FALSE) +
+  facet_wrap(~variable,scales = "free_y") +
+  labs(x = "Number of topics K",
+       title = "Statistical fit of models with different K")
+
+ggsave("seachk_fit.png", searchk_fit,
+       width = 8,
+       height = 6)
+
+# write out fit and plot
+
+fit %>%
+  write_rds("out/fitk_5_40.rds")
+
+plot %>%
+  write_rds("out/plotk_5_40.rds")
+```
+
+
+![Results of searchK process](plots/prior/searchk_5-75.png)
+
+
+
+```{r}
+dfm_stm <- convert(dfm_comp_z, to = "stm")
+
+# run with 
+
+
+
+
+
+model <- stm(documents = dfm_stm$documents,
+         vocab = dfm_stm$vocab, 
+         K = 10,
+         verbose = TRUE)
+
+plot(model)
+
+# again with 18
+
+model_k18 <- stm(documents = dfm_stm$documents,
+         vocab = dfm_stm$vocab, 
+         K = 18,
+         verbose = TRUE)
+
+plot(model_k18)
+```
+
+```{r}
+
+
+K <- c(5:75)
+fit <- searchK(dfm_stm$documents, dfm_stm$vocab,
+               K = K,
+               max.em.its=150,
+               verbose = TRUE)
+```
+

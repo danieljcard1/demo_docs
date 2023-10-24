@@ -1,0 +1,313 @@
+---
+title: "Wk 05: Titles in TC Journals, pt. 2"
+---
+
+## Overview
+
+Here, we conduct some computational text analysis on a dataset consisting of article metadata for articles published in 5 TC journals between 2005 and 2023.
+
+In this exercise, we'll work adjacent to Boettger and Friess (2014) in that we are working with a similar dataset. That said, our dataset doesn't include *Intercom* but does feature 2000+ articles across 5 journals and 18 years. As such, rather than compare word usage across academic and trade publications, we might be able to do some additional analysis to trace shifts over time.  
+
+
+## Quantitative Analysis of Textual Data
+
+Quantitative analysis of textual data has been a mainstay in corpus linguistics for some time. It's been much less popular in RCWS, but can be a useful approach for working with large datasets.
+
+### Quanteda
+
+While Ding and Kong (2019) and Boettger and Friess (2014) both use [Laurence Anthony's AntConc](https://www.laurenceanthony.net/software/antconc/) and there are a number of similar WYSIWYG corpus analysis tools out there, we'll be using [Quanteda](http://quanteda.io/). Quanteda is an R package designed to provide an open source alternative to expensive corpus tools that is simultaneously powerful and relatively easy to learn. 
+
+Here are some concepts and vocabulary that are salient to corpus analysis with Quanteda:
+
+* **Corpus:** A corpus is a collection of text documents. It's the primary data structure in Quanteda, and it can consist of a single document or a large collection of documents.
+* **Document-Term Matrix (DTM):** A DTM is a table that represents the frequency of words (terms) in each document of a corpus. It's a fundamental tool for text analysis and allows you to perform various operations on text data.
+* **Tokenization:** Tokenization is the process of breaking text into individual words or tokens. Here, a "token" refers to a single, meaningful unit of text. Tokens are the building blocks of textual data, and they are usually words, but they can also be phrases, subword units, punctuation marks, and more. Quanteda can tokenize text documents, which is the first step in many text analysis tasks. 
+* **Stop Words:** Stop words are common words like "and," "the," "is," etc., that are often removed from text before analysis. While most disciplines remove them without hesitation, scholars in rhetoric may ask questions for which stop words are significant.
+* **Stemming and Lemmatization:** These are techniques used to reduce words to their base or root forms. Stemming removes suffixes from words, while lemmatization maps words to their dictionary forms. Quanteda provides functions for both.
+* **Dictionary:** A dictionary is a list of words or phrases used to identify specific features or attributes in text. You can create custom dictionaries or use predefined ones in Quanteda.
+* **n-grams:** N-grams are contiguous sequences of n items (usually words) from a given text. Quanteda can help you create n-grams to capture multi-word phrases and patterns.
+* **Tidy Data Principles:** Quanteda often follows the tidy data principles, which emphasize organizing data into a structured format that facilitates analysis. This includes using data frames and long-format data structures.
+
+### Install and Load Quanteda
+
+Quanteda is split into a series of modular packages. We'll install each of them as well as a few others. For reference, read about [the Quanteda family of packages](http://quanteda.io/#the-quanteda-family-of-packages).
+
+```{r}
+#install.packages("Rtools") # you may need to install Rtools to install all the quanteda packages
+
+#install.packages("remotes")
+
+#install.packages("quanteda")
+#install.packages("readtext")
+#install.packages("spacyr")
+#install.packages("quanteda.textmodels")
+#install.packages("quanteda.textstats")
+#install.packages("quanteda.textplots")
+#remotes::install_github("kbenoit/quanteda.dictionaries")
+
+# load quanteda family of packages
+library(quanteda)
+library(quanteda.dictionaries)
+library(quanteda.textmodels)
+library(quanteda.textplots)
+library(quanteda.textstats)
+
+# load other libraries
+library(readtext)
+library(spacyr)
+library(tidyverse)
+
+```
+
+## Quantitative Analysis of TC Titles and Abstracts
+
+
+### Load data
+
+```{r}
+# define location of datafile
+data_file <- "data/tc_journals.RData"
+
+# load data
+load(data_file)
+
+glimpse(tc_journals)
+```
+
+For reference, here's our data in a nifty table made with the [reactable](https://glin.github.io/reactable/index.html) package. You can sort and filter by column, which may come in handy as you check your code results. For viewing purposes I've combined authors, journal, and year into a single column. 
+```{r}
+#install.packages("reactable")
+library(reactable)
+
+# drop source title
+table_data <- tc_journals %>%
+  mutate(
+    article = paste(author_full_names," (",abbreviation,", ",publication_year,")"
+    )
+  ) %>%
+  select(article,
+         article_title,
+         abstract)
+
+# create table (define columns, add parameters & formatting)
+reactable(table_data,
+  columns = list(
+    article = colDef(name = "Article", sortable = TRUE, filterable = TRUE),
+    article_title = colDef(name = "Title", sortable = TRUE, filterable = TRUE, width = 175),
+    abstract = colDef(name = "Abstract", sortable = TRUE, filterable = TRUE, width = 500)
+  ),
+  defaultColDef = colDef(align = "left", width = 125),
+  searchable = TRUE, # Enable search
+  sortable = TRUE, # Enable sorting
+  defaultPageSize = 3,
+  highlight = TRUE,
+  outlined = TRUE,
+  striped = TRUE,
+  compact = TRUE
+)
+
+```
+
+Now that we have packages installed, libraries loaded, and our data looks good, let's try to answer a series of questions...
+
+### What are the most common words in TC Journals?
+
+To answer this question, we need to
+
+* create a corpus object in which titles function as the texts
+* tokenize each text (title) in the corpus
+* remove stopwords (or decide not to)
+* create a document-feature matrix
+* sort and visualize the feature (token/word) counts
+
+#### Create a corpus of titles
+
+Crete a corpus object.
+
+```{r}
+# Create a corpus object called "title_corp"
+title_corp <- corpus(tc_journals, text_field = "article_title")
+
+# print the corpus
+print(title_corp)
+
+# summary of the corpus (including metadata for the texts)
+#summary(title_corp, n = 2)
+
+```
+
+::: {.callout-tip title="Corpus summary"}
+You can call `summary(corpus_name)` to get summary statistics about the corpus.
+:::
+
+#### Create a tokens object
+
+Now that we have a corpus, we can tokenize our texts (article titles) so that each word in the title becomes on in a list of tokens associated with that article. We can view the first three results to better see what the object looks like. 
+
+```{r}
+# create a tokens object without punctuation, separators, and numbers
+title_tokens <- tokens(title_corp, remove_punct = TRUE,
+                 remove_separators = TRUE,
+                 remove_numbers = TRUE)
+
+# check the result
+title_tokens[1:3]
+```
+
+#### Remove stopwords
+
+For this analysis, we might also remove stopwords. We can view the first 15 words in a standard list of stopwords.
+
+```{r}
+# see a list of stopwords
+head(stopwords("en"), 15)
+```
+
+Notice that "you" was a key word in B&G's comparative analysis of academic and trade publications and also happens to be one of the stopwords in our list. 
+
+We'll create a separate tokens object without stopwords so that we can compare the results with and without. 
+
+```{r}
+# create a new tokens object by removing stopwords from the existing tokens object  
+title_tokens_nostop <- title_tokens %>%
+  tokens_remove(stopwords("en"))
+
+# check the result
+title_tokens_nostop[1:3]
+```
+
+#### Create a document-feature matrix
+
+Next we can use a tokens object to create a document-feature matrix (dfm). For reference: 
+
+* Document: In a DFM, each row represents a document or text unit. This can be a single document, a sentence, a paragraph, or any other defined text unit. In our case, it's a title + abstract.
+
+* Feature: Each column represents a feature, typically a word or a term that appears in the documents. These features are usually extracted from the text through tokenization, and they can be single words or multi-word phrases.
+
+* Matrix: The DFM is a two-dimensional matrix where the rows correspond to documents, and the columns correspond to features. The values in the matrix represent the frequency of each feature in each document, but they can also be transformed into other measures such as term frequency-inverse document frequency (TF-IDF) scores.
+
+Let's create two dfms: one that includes stopwords and another that doesn't.
+
+```{r}
+# Below we create two dfms: one from each of our tokens objects (w/ stopwords and w/o stopwords)
+
+# syntax option 1 (with stopwords)
+titles_dfm <- title_tokens %>%
+  dfm()
+
+
+# syntax option 2 (without stopwords)
+titles_nostop_dfm <- dfm(title_tokens_nostop)
+
+```
+
+Now we can print each matrix.
+
+```{r}
+# dfm with stopwords
+print(titles_dfm)
+
+
+# dfm without stopwords
+print(titles_nostop_dfm)
+```
+
+
+::: {.callout-note title="Sparse matrices"}
+In this context, "sparse" refers to a type of data structure used to efficiently work with large data. In a sparse matrix, the majority of the elements have a value of zero. If your dfm is 99.56% sparse, it means that only .04% of the entries are something other than 0.  
+:::
+
+
+
+#### View top features (words)
+
+```{r}
+# 20 most frequent words in dfm (with stop)
+topfeatures(titles_dfm, 20)
+
+# 20 most frequent words in dfm (with stop)
+topfeatures(titles_nostop_dfm, 20)
+```
+
+#### Visualize top words (with stopwords)
+```{r}
+# get top n features
+features_titles_dfm <- textstat_frequency(titles_dfm, n = 50)
+
+# sort by reverse frequency order
+features_titles_dfm$feature <- with(features_titles_dfm, reorder(feature, -frequency))
+
+ggplot(features_titles_dfm, aes(x = feature, y = frequency)) +
+    geom_point() + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(title = "Top words in TC Article Titles (2005-2023)")
+
+```
+#### Visualize top words (without stopwords)
+```{r}
+# get top n features
+features_titles_nostop_dfm <- textstat_frequency(titles_nostop_dfm, n = 50)
+
+# sort by reverse frequency order
+features_titles_nostop_dfm$feature <- with(features_titles_nostop_dfm, reorder(feature, -frequency))
+
+ggplot(features_titles_nostop_dfm, aes(x = feature, y = frequency)) +
+    geom_point() + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(title = "Top words in TC Article Titles (2005-2023)")
+
+```
+
+#### Replicate B&G's frequency table (no stop words)
+
+Top words in TC Article Titles (2005-2023)
+
+```{r}
+sorted_features <- features_titles_nostop_dfm %>%
+  arrange(desc(frequency))%>%
+  select(feature, frequency, docfreq)%>%
+  reactable(defaultPageSize = 20,
+  highlight = TRUE,
+  outlined = TRUE,
+  striped = TRUE,
+  compact = TRUE)
+
+sorted_features
+
+```
+Nice! But are "technical" and "communication" really top words? Or is "technical communication" the top phrase? 
+
+### What are the top words or phrases?
+
+Here, we can use Quanteda's vignette [*Working with multi-word expressions*](http://quanteda.io/articles/pkgdown/examples/phrase.html).
+
+#### Discover collocations
+
+Here, I start with the tokens object created earlier (no punctuation, separators, or numbers). We then remove stopwords, make the words lowercase, and 
+```{r}
+# min count is a big parameter here. 
+col <- title_tokens %>% 
+       tokens_remove(stopwords("en")) %>% 
+       tokens_select(pattern = "^[A-Z]", valuetype = "regex", 
+                     case_insensitive = TRUE, padding = TRUE) %>% 
+       textstat_collocations(min_count = 15, tolower = TRUE)
+
+head(col)
+```
+
+We can then use that statistical scoring of word associations to automatically compound collocates into multi-word expressions. 
+```{r}
+comp_title_toks <- tokens_compound(title_tokens, pattern = col)
+
+head(comp_title_toks)
+```
+
+Now that we have a tokens object that includes multi-word expressions...
+
+
+For reference:
+
+* [Quanteda Tutorials](https://tutorials.quanteda.io/)
+* [Quanteda Documentation](https://quanteda.io/)
+
+

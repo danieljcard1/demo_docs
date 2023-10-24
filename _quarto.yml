@@ -1,0 +1,49 @@
+project:
+  type: website
+  output-dir: docs
+  render: 
+    - "*.qmd"
+    - "!wk04_reddit_api.qmd"
+    - "!wk05_nyt-api.qmd"
+    - "!wk07_*.qmd"
+
+website:
+  title: "Computational Rhetorics"
+  back-to-top-navigation: true
+  sidebar:
+    style: "docked"
+    pinned: true
+    search: true
+    contents:
+      - index.qmd 
+      
+      - section: "Demos"
+        contents:
+          - demos/week02/wk02_wos_journals.qmd
+          - demos/week03/wk03_wos_journals.qmd
+          - demos/week03/wk03_text_analysis.qmd
+          - demos/week05/wk05_tc-titles.qmd
+          - demos/week05/wk05_tc-titles-pt2.qmd
+          - demos/week06/wk06_tracking-frames.qmd
+
+
+format: 
+  html:
+    toc: true
+    code-fold: true
+    code-link: true
+    code-tools: true
+    code-block-bg: true
+    theme: 
+      light: flatly
+      dark: darkly
+      
+execute: 
+  warning: false
+  error: false
+  freeze: auto 
+  
+  
+
+
+

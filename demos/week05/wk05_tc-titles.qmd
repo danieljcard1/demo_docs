@@ -1,0 +1,185 @@
+---
+title: "Wk 05: Titles in TC Journals, pt. 1"
+---
+
+## Overview
+
+Here, we prepare a dataset consisting of article metadata for five major tc journals:
+
+* Journals: Technical Communication Quarterly (TCQ), Technical Communication (TC), Journal of Technical Writing and Communication (JTWC)
+, Communication Design Quarterly (CDQ), and Journal of Business and Technical Communication (JBTC)
+* Years: 2005 - 2023
+* Article Metadata: Journal, Authors, Title, Abstract, Publication Year
+
+## Prepare data
+
+We need to drop written comm from our "full data" and read in and clean bibtex data from Communication Design Quarterly and Journal of Technical Writing and Communication
+
+### Load libraries
+
+```{r}
+#install.packages("bib2df")
+library(bib2df)
+library(janitor)
+library(tidyverse)
+```
+First, we'll read in CDQ.
+```{r}
+# CDQ: read in and clean names
+cdq_raw <- bib2df("data/acm-cdq.bib")%>%
+  clean_names()
+
+head(cdq_raw)
+```
+
+
+Second, we'll read in JWTC.
+```{r}
+# JWTC: read in and clean names
+jtwc_raw <- bib2df("data/jtwc.bib")%>%
+  clean_names()
+
+head(jtwc_raw)
+```
+
+
+Third, we'll read in our full data and drop WC
+```{r}
+# read in full data and drop Written Comm entries
+fullish <- read_csv("data/full_data.csv") %>%
+  filter(abbreviation != "WC") %>%
+  select(source_title,
+         author_full_names,
+         article_title,
+         abstract,
+         publication_year,
+         abbreviation)
+
+#head(fullish)
+
+#glimpse(fullish)
+
+#unique(fullish$abbreviation)
+```
+
+### Unify the dataset
+
+For this analysis, we want consistent data and column names for each journal in the dataset. Here are the datapoints, using the column names from our preexisting data:
+
+* source_title
+* author_full_names
+* article_title
+* abstract
+* publication_year
+* abbreviation
+
+Let's select the target fields, add the journal abbreviation, and rename the columns to harmonize the data with our preexisting set. 
+```{r}
+#glimpse(cdq_raw)
+
+# select fields to keep; add an abbreviation column; rename columns
+cdq_select <- cdq_raw %>%
+  select(journal,
+         author,
+         title,
+         abstract,
+         year) %>%
+  mutate(abbreviation = "CDQ")%>%
+  rename(source_title = journal,
+         author_full_names = author,
+         article_title = title,
+         abstract = abstract,
+         publication_year = year,
+         abbreviation = abbreviation)%>%
+  mutate(author_full_names = map_chr(author_full_names, ~ paste(.x, collapse = "; ")))
+
+glimpse(cdq_select)
+
+```
+
+Now the same for JTWC!
+```{r}
+#glimpse(jtwc_raw)
+
+# select fields to keep; add an abbreviation column; rename columns
+jtwc_select <- jtwc_raw %>%
+  select(journal,
+         author,
+         title,
+         abstract,
+         year) %>%
+  mutate(abbreviation = "JTWC")%>%
+  rename(source_title = journal,
+         author_full_names = author,
+         article_title = title,
+         abstract = abstract,
+         publication_year = year,
+         abbreviation = abbreviation)%>%
+  mutate(author_full_names = map_chr(author_full_names, ~ paste(.x, collapse = "; ")))
+
+glimpse(jtwc_select)
+
+```
+
+Now we can join the three
+
+```{r}
+tc_journals <- bind_rows(fullish, cdq_select, jtwc_select)
+
+glimpse(tc_journals)
+```
+## Check work: Plot the data
+
+```{r}
+# Plot 1: Count of observations by journal abbreviation
+tc_journals %>%
+  count(abbreviation) %>%
+  ggplot(aes(x = reorder(abbreviation, n), y = n)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  coord_flip() +
+  labs(title = "Articles published (2005-2023) in major TC Journals", x = "Journal", y = "Articles")
+```
+```{r}
+# Plot 2: Bar chart of the number of articles published per year, colored by journal abbreviation
+tc_journals %>%
+  group_by(publication_year, abbreviation) %>%
+  summarise(num_articles = n()) %>%
+  ggplot(aes(x = publication_year, y = num_articles, fill = abbreviation)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Articles Published per Year, by Journal Abbreviation", x = "Publication Year", y = "Number of Articles") +
+  scale_fill_discrete(name = "Journal Abbreviation")
+```
+```{r}
+# Plot 3: Dot plot of the number of articles published per year, colored by journal abbreviation with trend lines
+tc_journals %>%
+  group_by(publication_year, abbreviation) %>%
+  summarise(num_articles = n()) %>%
+  ggplot(aes(x = publication_year, y = num_articles, color = abbreviation)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", se = FALSE, size = .7, aes(group = abbreviation), linetype = "dashed") +
+  labs(title = "Articles Published per Year, by Journal Abbreviation", x = "Publication Year", y = "Number of Articles") +
+  scale_color_discrete(name = "Journal Abbreviation")
+```
+
+
+```{r}
+# Plot 4: Bar chart of articles per year
+tc_journals %>%
+  group_by(publication_year) %>%
+  summarise(num_articles = n()) %>%
+  ggplot(aes(x = publication_year, y = num_articles)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(title = "Total Articles per Year across Major TC Journals", x = "Publication Year", y = "Number of Articles")
+```
+
+## Write out new data
+
+```{r}
+# save as csv
+
+write_csv(tc_journals, "data/tc_journals.csv")
+
+
+save(tc_journals, file = "data/tc_journals.RData")
+```
+
