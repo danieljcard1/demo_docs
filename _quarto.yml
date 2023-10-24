@@ -25,6 +25,7 @@ website:
           - demos/week05/wk05_tc-titles.qmd
           - demos/week05/wk05_tc-titles-pt2.qmd
           - demos/week06/wk06_tracking-frames.qmd
+          - demos/week08/wk08_sentiment-analysis.qmd
 
 
 format: 

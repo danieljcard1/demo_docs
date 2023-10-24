@@ -37,17 +37,13 @@ library(tidytext)
 
 #install.packages("textdata")
 library(textdata)
-
-# get AFINN sentiment dictionary (you may have to download)
-get_sentiments("afinn")
-
-# get bing sentiment dictionary
-get_sentiments("bing")
-
-
 ```
 
 ### AFINN
+```{r}
+# get AFINN sentiment dictionary (you may have to download)
+get_sentiments("afinn")
+```
 
 
 ### Bing
