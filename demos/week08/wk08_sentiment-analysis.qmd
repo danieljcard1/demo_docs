@@ -1,0 +1,171 @@
+---
+title: "Wk 08: Sentiment Analysis"
+---
+
+## Overview
+
+Here is some sample code to get sentiment data from bing and nrc dictionaries. 
+
+
+## The data
+
+```{r}
+library(tidyverse)
+load("data/tmm_comments.Rdata")
+
+glimpse(data)
+```
+
+## Sentiment analysis 
+
+```{r}
+library(janitor)
+data <- data %>%
+  clean_names()
+
+glimpse(data)
+```
+
+### Letter text
+
+```{r}
+head(data$letter_text, n = 1)
+```
+
+```{r}
+library(tidytext)
+
+#install.packages("textdata")
+library(textdata)
+
+# get AFINN sentiment dictionary (you may have to download)
+get_sentiments("afinn")
+
+# get bing sentiment dictionary
+get_sentiments("bing")
+
+
+```
+
+### AFINN
+
+
+### Bing
+
+```{r}
+# get bing sentiment dictionary
+get_sentiments("bing")
+
+```
+
+
+### NRC
+
+```{r}
+# get nrc dictionary (you may have to download)
+get_sentiments("nrc")
+```
+
+### Setting up our data
+
+```{r}
+data <- data %>%
+  select(letter_number, organization_name, letter_text)
+
+
+
+
+```
+
+```{r}
+tokens <- data %>%
+  unnest_tokens(word, letter_text)
+
+head(tokens)
+```
+### Get bing sentiment scores
+
+In the following code, we
+
+```{r}
+bing_sentiments <- tokens %>%
+  inner_join(get_sentiments("bing"), by = c(word = "word")) %>%
+  group_by(letter_number) %>%
+  summarise(bing_sentiment = sum(sentiment == "positive") - sum(sentiment == "negative"))
+
+
+bing_sentiments
+
+
+```
+
+### Get NRC sentiment scores
+
+```{r}
+# Calculate sentiment scores using the NRC lexicon
+nrc_sentiments <- tokens %>%
+  inner_join(get_sentiments("nrc"), by = c(word = "word")) %>%
+  group_by(letter_number, sentiment) %>%
+  summarise(sentiment_count = n()) %>%  # Count the number of each sentiment
+  pivot_wider(names_from = sentiment, values_from = sentiment_count, values_fill = 0) %>%
+  ungroup(.)
+
+# rename columns to include prefix "nrc_"
+nrc_sentiments <- nrc_sentiments %>%
+  rename_with(~ paste0("nrc_", .), -letter_number)
+
+head(nrc_sentiments)
+```
+
+```{r}
+# Join the sentiment scores with the original DataFrame
+results <- data %>%
+  left_join(bing_sentiments, by = "letter_number") %>%
+  left_join(nrc_sentiments, by = "letter_number")
+
+# View the resulting DataFrame
+head(results)
+
+```
+### Write out results for later use
+```{r}
+save(results, file = "out/tmm_sentiment_results.Rdata")
+```
+
+## Explore sentiment results
+
+```{r}
+# Define the sentiment category you want to use (replace with the desired category)
+sentiment_category <- "nrc_trust"
+
+# Extract the top 5 observations for the specified sentiment category
+top_5_sentiment <- results %>%
+  arrange(desc({{sentiment_category}})) %>%
+  slice_head(n = 5) %>%
+  select(letter_number, letter_text, {{sentiment_category}})
+
+# Print the top 5 observations
+print(top_5_sentiment)
+
+```
+
+## Filter out repeat letters; create subsets
+
+```{r}
+# Create a new df with unique 'letter_text' observations
+results_filtered <- results %>%
+  distinct(letter_text, .keep_all = TRUE)
+
+# create subsets for exploration
+results_anger <- results_filtered %>%
+  select(letter_number, letter_text, nrc_anger)
+```
+
+```{r}
+library(reactable)
+
+# create table (define columns, add parameters & formatting)
+reactable(results_anger, searchable = TRUE, filterable = TRUE)
+```
+
+
