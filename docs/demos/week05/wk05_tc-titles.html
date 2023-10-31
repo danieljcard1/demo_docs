@@ -178,6 +178,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Wk 08: Sentiment Analysis</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../demos/week09/wk09_tidy_networks.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wk 09: Network Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../demos/week09/wk09_networks_pt2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wk 09: Network Analysis, pt 2</span></a>
+  </div>
+</li>
       </ul>
 </li>
     </ul>
@@ -234,7 +246,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>First, we’ll read in CDQ.</p>
 <div class="cell">
 <details><summary>Code</summary><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># CDQ: read in and clean names</span></span>
-<span><span class="va">cdq_raw</span> <span class="op">&lt;-</span> <span class="fu">bib2df</span><span class="op">(</span><span class="st">"data/acm-cdq.bib"</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span><span class="va">cdq_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://docs.ropensci.org/bib2df/reference/bib2df.html">bib2df</a></span><span class="op">(</span><span class="st">"data/acm-cdq.bib"</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://sfirke.github.io/janitor/reference/clean_names.html">clean_names</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">cdq_raw</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -259,7 +271,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Second, we’ll read in JWTC.</p>
 <div class="cell">
 <details><summary>Code</summary><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># JWTC: read in and clean names</span></span>
-<span><span class="va">jtwc_raw</span> <span class="op">&lt;-</span> <span class="fu">bib2df</span><span class="op">(</span><span class="st">"data/jtwc.bib"</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span><span class="va">jtwc_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://docs.ropensci.org/bib2df/reference/bib2df.html">bib2df</a></span><span class="op">(</span><span class="st">"data/jtwc.bib"</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://sfirke.github.io/janitor/reference/clean_names.html">clean_names</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">jtwc_raw</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>

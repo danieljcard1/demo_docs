@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Computational Rhetorics - Wk 09: Network Analysis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark"><script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+</head>
+<body class="nav-sidebar docked">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top"><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../demos/week02/wk02_wos_journals.html">Demos</a></li><li class="breadcrumb-item"><a href="../../demos/week09/wk09_tidy_networks.html">Wk 09: Network Analysis</a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation docked overflow-auto"><div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../">Computational Rhetorics</a> 
+        <div class="sidebar-tools-main">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Computational Rhetorics</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+ <span class="menu-text">Demos</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../demos/week02/wk02_wos_journals.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wk 02: Exploring TC journals (pt 1)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../demos/week03/wk03_wos_journals.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wk 03: Exploring TC journals, (pt 2)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../demos/week03/wk03_text_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wk 03: Exploring TC journals, (pt 3)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../demos/week05/wk05_tc-titles.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wk 05: Titles in TC Journals, pt.&nbsp;1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../demos/week05/wk05_tc-titles-pt2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wk 05: Titles in TC Journals, pt.&nbsp;2</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../demos/week06/wk06_tracking-frames.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wk 06: Tracking ngrams in TC Research</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../demos/week08/wk08_sentiment-analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wk 08: Sentiment Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../demos/week09/wk09_tidy_networks.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Wk 09: Network Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../demos/week09/wk09_networks_pt2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wk 09: Network Analysis, pt 2</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+    </ul>
+</div>
+</nav><div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
+   
+  <ul>
+<li><a href="#overview-network-analysis" id="toc-overview-network-analysis" class="nav-link active" data-scroll-target="#overview-network-analysis">Overview: Network Analysis</a></li>
+  <li><a href="#key-library-bibliometrix" id="toc-key-library-bibliometrix" class="nav-link" data-scroll-target="#key-library-bibliometrix">Key library: Bibliometrix</a></li>
+  <li><a href="#convert-.bib-to-dataframes" id="toc-convert-.bib-to-dataframes" class="nav-link" data-scroll-target="#convert-.bib-to-dataframes">Convert .bib to dataframes</a></li>
+  <li>
+<a href="#plot-results" id="toc-plot-results" class="nav-link" data-scroll-target="#plot-results">Plot results</a>
+  <ul class="collapse">
+<li>
+<a href="#citation-analysis" id="toc-citation-analysis" class="nav-link" data-scroll-target="#citation-analysis">Citation analysis</a>
+  <ul class="collapse">
+<li><a href="#local-citations" id="toc-local-citations" class="nav-link" data-scroll-target="#local-citations">Local citations</a></li>
+  </ul>
+</li>
+  <li><a href="#co-citation" id="toc-co-citation" class="nav-link" data-scroll-target="#co-citation">Co-Citation</a></li>
+  </ul>
+</li>
+  </ul></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">Wk 09: Network Analysis</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header><section id="overview-network-analysis" class="level2"><h2 class="anchored" data-anchor-id="overview-network-analysis">Overview: Network Analysis</h2>
+<p>Web of Science Queries (articles only)</p>
+<ul>
+<li><a href="https://www.webofscience.com/wos/woscc/summary/6c31f851-fec2-4b2b-8003-01b6f836bbac-afc4d4e3/relevance/1">Technical Communication Quarterly</a></li>
+<li><a href="https://www.webofscience.com/wos/woscc/summary/13106b03-1f1a-4c9e-a2c9-03080436c96e-afc513aa/relevance/1">IEEE Transactions on Professional Communication</a></li>
+<li><a href="https://www.webofscience.com/wos/woscc/summary/840d8fbb-d74a-4b94-ba44-eded28ce8cbb-afc883f2/relevance/1">Journal of Business and Technical Communication</a></li>
+<li><a href="https://www.webofscience.com/wos/woscc/summary/1b978d9b-135d-4b10-b377-b7340f59d9ef-afc88e9b/relevance/1">Technical Communication</a></li>
+</ul>
+<p>Other resources:</p>
+<ul>
+<li><a href="https://dergipark.org.tr/en/download/article-file/2237066">Article that presents a tutorial for Bibliometrix</a></li>
+</ul></section><section id="key-library-bibliometrix" class="level2"><h2 class="anchored" data-anchor-id="key-library-bibliometrix">Key library: Bibliometrix</h2>
+<p><a href="https://www.bibliometrix.org/home/">Bibliometrix</a></p>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sfirke/janitor">janitor</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.bibliometrix.org">bibliometrix</a></span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>To use biblioshiny (Graphical interface built with RShiny)</p>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co">#library(bibliometrix)</span></span>
+<span><span class="co">#biblioshiny()</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section><section id="convert-.bib-to-dataframes" class="level2"><h2 class="anchored" data-anchor-id="convert-.bib-to-dataframes">Convert .bib to dataframes</h2>
+<p>Set file locations</p>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tcq</span> <span class="op">&lt;-</span> <span class="st">"data/wos-tcq.bib"</span></span>
+<span><span class="va">ieee</span> <span class="op">&lt;-</span> <span class="st">"data/wos-ieee.bib"</span></span>
+<span><span class="va">jbtc</span> <span class="op">&lt;-</span> <span class="st">"data/wos-jbtc.bib"</span></span>
+<span><span class="va">tc</span> <span class="op">&lt;-</span> <span class="st">"data/wos-tc.bib"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Convert each bib file to a dataframe</p>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co">#help(convert2df)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># TCQ</span></span>
+<span><span class="va">df_tcq</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bibliometrix/man/convert2df.html">convert2df</a></span><span class="op">(</span>file <span class="op">=</span> <span class="va">tcq</span>,</span>
+<span>                  dbsource <span class="op">=</span> <span class="st">"wos"</span>,</span>
+<span>                  format <span class="op">=</span> <span class="st">"bibtex"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stdout">
+<pre><code>
+Converting your wos collection into a bibliographic dataframe
+
+
+Warning:
+In your file, some mandatory metadata are missing. Bibliometrix functions may not work properly!
+
+Please, take a look at the vignettes:
+- 'Data Importing and Converting' (https://www.bibliometrix.org/vignettes/Data-Importing-and-Converting.html)
+- 'A brief introduction to bibliometrix' (https://www.bibliometrix.org/vignettes/Introduction_to_bibliometrix.html)
+
+
+Missing fields:  C1 
+Done!</code></pre>
+</div>
+<details><summary>Code</summary><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># IEEE</span></span>
+<span><span class="va">df_ieee</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bibliometrix/man/convert2df.html">convert2df</a></span><span class="op">(</span>file <span class="op">=</span> <span class="va">ieee</span>,</span>
+<span>                  dbsource <span class="op">=</span> <span class="st">"wos"</span>,</span>
+<span>                  format <span class="op">=</span> <span class="st">"bibtex"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stdout">
+<pre><code>
+Converting your wos collection into a bibliographic dataframe
+
+
+Warning:
+In your file, some mandatory metadata are missing. Bibliometrix functions may not work properly!
+
+Please, take a look at the vignettes:
+- 'Data Importing and Converting' (https://www.bibliometrix.org/vignettes/Data-Importing-and-Converting.html)
+- 'A brief introduction to bibliometrix' (https://www.bibliometrix.org/vignettes/Introduction_to_bibliometrix.html)
+
+
+Missing fields:  C1 
+Done!</code></pre>
+</div>
+<details><summary>Code</summary><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># JBTC</span></span>
+<span><span class="va">df_jbtc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bibliometrix/man/convert2df.html">convert2df</a></span><span class="op">(</span>file <span class="op">=</span> <span class="va">jbtc</span>,</span>
+<span>                  dbsource <span class="op">=</span> <span class="st">"wos"</span>,</span>
+<span>                  format <span class="op">=</span> <span class="st">"bibtex"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stdout">
+<pre><code>
+Converting your wos collection into a bibliographic dataframe
+
+
+Warning:
+In your file, some mandatory metadata are missing. Bibliometrix functions may not work properly!
+
+Please, take a look at the vignettes:
+- 'Data Importing and Converting' (https://www.bibliometrix.org/vignettes/Data-Importing-and-Converting.html)
+- 'A brief introduction to bibliometrix' (https://www.bibliometrix.org/vignettes/Introduction_to_bibliometrix.html)
+
+
+Missing fields:  C1 
+Done!</code></pre>
+</div>
+<details><summary>Code</summary><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># TC</span></span>
+<span><span class="va">df_tc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bibliometrix/man/convert2df.html">convert2df</a></span><span class="op">(</span>file <span class="op">=</span> <span class="va">tc</span>,</span>
+<span>                  dbsource <span class="op">=</span> <span class="st">"wos"</span>,</span>
+<span>                  format <span class="op">=</span> <span class="st">"bibtex"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stdout">
+<pre><code>
+Converting your wos collection into a bibliographic dataframe
+
+
+Warning:
+In your file, some mandatory metadata are missing. Bibliometrix functions may not work properly!
+
+Please, take a look at the vignettes:
+- 'Data Importing and Converting' (https://www.bibliometrix.org/vignettes/Data-Importing-and-Converting.html)
+- 'A brief introduction to bibliometrix' (https://www.bibliometrix.org/vignettes/Introduction_to_bibliometrix.html)
+
+
+Missing fields:  C1 
+Done!</code></pre>
+</div>
+</div>
+<p>Combine the resulting dataframes</p>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">M</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html">bind_rows</a></span><span class="op">(</span></span>
+<span>  <span class="va">df_ieee</span>,</span>
+<span>  <span class="va">df_jbtc</span>,</span>
+<span>  <span class="va">df_tc</span>,</span>
+<span>  <span class="va">df_tcq</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#write_rds(M, "data/comb.rds")</span></span>
+<span></span>
+<span><span class="co">#install.packages("bib2df")</span></span>
+<span><span class="co">#library(bib2df)</span></span>
+<span><span class="co">#df2bib(M, "data/comb.bib")</span></span>
+<span></span>
+<span><span class="co">#write_csv(M, "data/comb.csv")</span></span>
+<span></span>
+<span><span class="co"># get subset for analysis</span></span>
+<span></span>
+<span><span class="va">M</span> <span class="op">&lt;-</span> <span class="va">M</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">PY</span> <span class="op">&gt;</span> <span class="fl">1992</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># run a stock analysis (generates a list of dataframes)</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bibliometrix/man/biblioAnalysis.html">biblioAnalysis</a></span><span class="op">(</span><span class="va">M</span>, sep <span class="op">=</span> <span class="st">";"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># create a summary of the results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html">options</a></span><span class="op">(</span>width<span class="op">=</span><span class="fl">100</span><span class="op">)</span></span>
+<span><span class="va">S</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span>object <span class="op">=</span> <span class="va">results</span>, k <span class="op">=</span> <span class="fl">10</span>, pause <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stdout">
+<pre><code>
+
+MAIN INFORMATION ABOUT DATA
+
+ Timespan                              1994 : 2023 
+ Sources (Journals, Books, etc)        4 
+ Documents                             1866 
+ Annual Growth Rate %                  8.76 
+ Document Average Age                  11.8 
+ Average citations per doc             12.12 
+ Average citations per year per doc    1.022 
+ References                            52452 
+ 
+DOCUMENT TYPES                     
+ article                         1826 
+ article; early access           30 
+ article; proceedings paper      10 
+ 
+DOCUMENT CONTENTS
+ Keywords Plus (ID)                    1476 
+ Author's Keywords (DE)                4048 
+ 
+AUTHORS
+ Authors                               2201 
+ Author Appearances                    3370 
+ Authors of single-authored docs       654 
+ 
+AUTHORS COLLABORATION
+ Single-authored docs                  970 
+ Documents per Author                  0.848 
+ Co-Authors per Doc                    1.81 
+ International co-authorships %        0 
+ 
+
+Annual Scientific Production
+
+ Year    Articles
+    1994        7
+    1995       20
+    1996       17
+    1997       40
+    1998       42
+    1999       42
+    2000       51
+    2001       52
+    2002       40
+    2003       52
+    2004       46
+    2005       84
+    2006       63
+    2007       82
+    2008       76
+    2009       72
+    2010       80
+    2011       65
+    2012       72
+    2013       66
+    2014       60
+    2015       67
+    2016       73
+    2017       75
+    2018       81
+    2019       83
+    2020       80
+    2021      109
+    2022       89
+    2023       80
+
+Annual Percentage Growth Rate 8.76 
+
+
+Most Productive Authors
+
+   Authors        Articles Authors        Articles Fractionalized
+1    CARLINER S         16 CARLINER S                       13.42
+2    DE JONG MDT        16 MACKIEWICZ J                     13.03
+3    MACKIEWICZ J       16 SWARTS J                         12.00
+4    SPINUZZI C         16 FRIESS E                         10.50
+5    LAM C              14 LAM C                            10.50
+6    MELONCON L         14 SPINUZZI C                        9.50
+7    FRIESS E           13 MELONCON L                        8.67
+8    SWARTS J           13 BATOVA T                          8.00
+9    WALTON R           12 MALONE EA                         7.50
+10   DE JONG M          11 VAN DER MEIJ H                    7.50
+
+
+Top manuscripts per citations
+
+                               Paper                                    DOI  TC TCperYear   NTC
+1  LOWRY PB, 2014, IEEE Trans. Prof. Commun.  10.1109/TPC.2014.2312452      964     96.40 33.18
+2  SPINUZZI C, 2005, Tech. Commun.            NA                            502     26.42 18.49
+3  SPINUZZI C, 2012, J. Bus. Tech. Commun.    10.1177/1050651912444070      339     28.25 16.72
+4  BOREN MT, 2000, IEEE Trans. Prof. Commun.  10.1109/47.867942             325     13.54 13.55
+5  KOCK N, 2005, IEEE Trans. Prof. Commun.    10.1109/TPC.2005.849649       227     11.95  8.36
+6  ROBERT LP, 2005, IEEE Trans. Prof. Commun. 10.1109/TPC.2004.843292       154      8.11  5.67
+7  RUPPEL CP, 2001, IEEE Trans. Prof. Commun. 10.1109/47.911131             147      6.39  6.41
+8  HAAS AM, 2012, J. Bus. Tech. Commun.       10.1177/1050651912439539      128     10.67  6.31
+9  ROBEY D, 2000, Tech. Commun.               10.1109/47.826416             126      5.25  5.25
+10 JONES NN, 2016, Tech. Commun. Q.-a         10.1080/10572252.2016.1224655 125     15.62 10.14
+
+
+Most Relevant Sources
+
+                                   Sources        Articles
+1 TECHNICAL COMMUNICATION                              545
+2 JOURNAL OF BUSINESS AND TECHNICAL COMMUNICATION      460
+3 IEEE TRANSACTIONS ON PROFESSIONAL COMMUNICATION      454
+4 TECHNICAL COMMUNICATION QUARTERLY                    407
+
+
+Most Relevant Keywords
+
+   Author Keywords (DE)      Articles  Keywords-Plus (ID)     Articles
+1    COMMUNICATION                113 COMMUNICATION                165
+2    TECHNICAL COMMUNICATION       83 TECHNICAL COMMUNICATION       94
+3    COLLABORATION                 59 TECHNOLOGY                    81
+4    PEDAGOGY                      52 GENRE                         68
+5    USABILITY                     50 INFORMATION                   65
+6    ETHICS                        49 DESIGN                        61
+7    WRITING                       47 WORK                          58
+8    RHETORIC                      45 PERFORMANCE                   56
+9    SOCIAL MEDIA                  42 MODEL                         52
+10   SOCIAL JUSTICE                39 DISCOURSE                     42</code></pre>
+</div>
+</div>
+</section><section id="plot-results" class="level1"><h1>Plot results</h1>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">results</span>, k <span class="op">=</span> <span class="fl">10</span>, pause <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
+<p><img src="wk09_tidy_networks_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="wk09_tidy_networks_files/figure-html/unnamed-chunk-7-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="wk09_tidy_networks_files/figure-html/unnamed-chunk-7-3.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="wk09_tidy_networks_files/figure-html/unnamed-chunk-7-4.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<section id="citation-analysis" class="level2"><h2 class="anchored" data-anchor-id="citation-analysis">Citation analysis</h2>
+<p>Most cited articles</p>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb16"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Get citations</span></span>
+<span><span class="va">CR</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bibliometrix/man/citations.html">citations</a></span><span class="op">(</span><span class="va">M</span>, field <span class="op">=</span> <span class="st">"article"</span>, sep <span class="op">=</span> <span class="st">";"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Top 50 most cited articles</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">CR</span><span class="op">$</span><span class="va">Cited</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">50</span><span class="op">]</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stdout">
+<pre><code>                                                                                                                                               [,1]
+ANONYMOUS, TECHNICAL COMMUNICAT                                                                                                                 209
+MILLER CR, 1984, Q J SPEECH, V70, P151, DOI 10.1080/00335638409383686                                                                           118
+MILLER CR, 1979, COLL ENGL, V40, P610, DOI 10.2307/375964                                                                                        85
+JONES NN, 2016, TECH COMMUN Q, V25, P211, DOI 10.1080/10572252.2016.1224655                                                                      80
+JONES N. N., 2016, J TECH WRIT COMMUN, V46, P342, DOI DOI 10.1177/0047281616639472                                                               69
+RUSSELL DR, 1997, WRIT COMMUN, V14, P504, DOI 10.1177/0741088397014004004                                                                        66
+AGBOKA GY, 2013, TECH COMMUN Q, V22, P28, DOI 10.1080/10572252.2013.730966                                                                       62
+SWALES J, 1990, GENRE ANAL ENGLISH A                                                                                                             62
+HAAS AM, 2012, J BUS TECH COMMUN, V26, P277, DOI 10.1177/1050651912439539                                                                        61
+ANONYMOUS, 1996, TECH COMMUN Q                                                                                                                   57
+RUDE CD, 2009, J BUS TECH COMMUN, V23, P174, DOI 10.1177/1050651908329562                                                                        56
+BAZERMAN CHARLES, 1988, SHAPING WRITTEN KNOW                                                                                                     53
+SPINUZZI C., 2003, TRACING GENRES ORG S                                                                                                          53
+BERKENKOTTER C., 1995, GENRE KNOWLEDGE DISC                                                                                                      52
+KATZ SB, 1992, COLL ENGL, V54, P255, DOI 10.2307/378062                                                                                          52
+SCHRIVER KA., 1997, DYNAMICS DOCUMENT DE                                                                                                         49
+ANONYMOUS, 1998, TECH COMMUN Q, DOI 10.1080/10572259809364640, DOI 10.1080/10572259809364640                                                     48
+AGBOKA G. Y., 2014, J TECHNICAL WRITING, V44, P297                                                                                               44
+DAFT RL, 1986, MANAGE SCI, V32, P554, DOI 10.1287/MNSC.32.5.554                                                                                  42
+DRAGGA S, 2001, TECH COMMUN, V48, P265                                                                                                           42
+JOHNSON R. R., 1998, USER CTR TECHNOLOGY                                                                                                         42
+MILES M. B., 1994, QUALITATIVE DATA ANA                                                                                                          42
+ANONYMOUS, NO TITLE CAPTURED                                                                                                                     41
+HOFT NANCY L, 1995, INT TECHNICAL COMMUN                                                                                                         41
+RAINEY KT, 2005, TECH COMMUN-STC, V52, P323                                                                                                      41
+ANONYMOUS, 2000, SPURIOUS COIN HIST S                                                                                                            39
+KIMBALL MA, 2006, TECH COMMUN Q, V15, P67, DOI 10.1207/S15427625TCQ1501\\_6                                                                      38
+SPINUZZI C, 2007, TECH COMMUN Q, V16, P265, DOI 10.1080/10572250701290998                                                                        38
+HOFSTEDE G., 2001, CULTURES CONSEQUENCE                                                                                                          37
+SLACK JENNIFER DARYLL, 1993, J BUS TECH COMMUN, V7, P12, DOI 10.1177/1050651993007001002                                                         37
+ANONYMOUS, 2004, TECH COMMUN Q                                                                                                                   36
+ANONYMOUS, J TECHNICAL WRITING                                                                                                                   36
+WALTON R., 2019, TECHNICAL COMMUNICAT                                                                                                            36
+ANONYMOUS, INTERCOM                                                                                                                              34
+JONES NN, 2018, KEY THEORETICAL FRAMEWORKS: TEACHING TECHNICAL COMMUNICATION IN THE TWENTY-FIRST CENTURY, P241, DOI 10.7330/9781607327585.C010   34
+SALDA├A┬▒A J., 2016, CODING MANUAL QUALIT                                                                                                        34
+SUN HT, 2006, TECH COMMUN Q, V15, P457, DOI 10.1207/S15427625TCQ1504\\_3                                                                         33
+FARKAS DK, 1999, TECH COMMUN, V46, P42                                                                                                           32
+ANONYMOUS, J BUSINESS COMMUNICA                                                                                                                  31
+DURACK K. T., 1997, TECH COMMUN Q, V6, P249                                                                                                      31
+SPINUZZI C., 2008, NETWORK THEORIZING K                                                                                                          31
+YATES J, 1992, ACAD MANAGE REV, V17, P299, DOI 10.2307/258774                                                                                    31
+MISTRY ROHINTON, 2002, FAMILY MATTERS                                                                                                            30
+PARETTI MC, 2007, TECH COMMUN Q, V16, P327, DOI 10.1080/10572250701291087                                                                        29
+ANONYMOUS, 2007, COMMUNICATIVE PRACTI                                                                                                            28
+ANONYMOUS, PROFESSIONAL COMMUNI                                                                                                                  28
+BRUMBERGER E, 2015, TECH COMMUN-STC, V62, P224                                                                                                   28
+DAFT RL, 1987, MIS QUART, V11, P355, DOI 10.2307/248682                                                                                          28
+KOERBER A, 2006, TECH COMMUN Q, V15, P87, DOI 10.1207/S15427625TCQ1501\\_7                                                                       28
+SCHRIVER K, 1997, DYNAMICS DOCUMENT DE                                                                                                           28</code></pre>
+</div>
+</div>
+<p>Most cited first authors</p>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">CR</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bibliometrix/man/citations.html">citations</a></span><span class="op">(</span><span class="va">M</span>, field <span class="op">=</span> <span class="st">"author"</span>, sep <span class="op">=</span> <span class="st">";"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">CR</span><span class="op">$</span><span class="va">Cited</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">25</span><span class="op">]</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stdout">
+<pre><code>                  [,1]
+ANONYMOUS         7766
+SPINUZZI C         405
+MILLER CR          244
+NO TITLE CAPTURED  223
+JONES NN           191
+WALTON R           171
+CARLINER S         161
+HOFSTEDE G         143
+DRAGGA S           126
+WINSOR DA          123
+LATOUR B           119
+KOSTELNICK C       118
+MELONCON L         116
+BERKENKOTTER C     114
+NIELSEN J          111
+FREEDMAN A         109
+JONES N N          108
+BAZERMAN CHARLES   107
+VAN DER MEIJ H     107
+MACKIEWICZ J       102
+SWARTS J           102
+HAAS AM            101
+MIREL B             93
+TEBEAUX E           92
+KIMBALL MA          90</code></pre>
+</div>
+</div>
+<section id="local-citations" class="level3"><h3 class="anchored" data-anchor-id="local-citations">Local citations</h3>
+<p>Not working :(</p>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb20"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">CR</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bibliometrix/man/localCitations.html">localCitations</a></span><span class="op">(</span><span class="va">M</span>, sep <span class="op">=</span> <span class="st">";"</span><span class="op">)</span></span>
+<span><span class="va">CR</span><span class="op">$</span><span class="va">Authors</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="op">]</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stdout">
+<pre><code>          Author LocalCitations
+1  [ANONYMOUS] A              0
+2       ABBOTT C              0
+3       ABBOTT L              0
+4        ABELL J              0
+5     ACHARYA KR              0
+6     ACKERMAN M              0
+7          ADA S              0
+8         ADAM C              0
+9        ADAMS A              0
+10      ADAMS AH              0</code></pre>
+</div>
+</div>
+<p>Not working :(</p>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">CR</span><span class="op">$</span><span class="va">Papers</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>,<span class="op">]</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stdout">
+<pre><code>                                       Paper                         DOI Year LCS GCS
+1    HOPKINS WE, 1994, J. Bus. Tech. Commun. 10.1177/1050651994008003005 1994   0   0
+2        ZAK MW, 1994, J. Bus. Tech. Commun. 10.1177/1050651994008003002 1994   0   7
+3  NICHOLSON JD, 1994, J. Bus. Tech. Commun. 10.1177/1050651994008003006 1994   0   0
+4     LIMAYE MR, 1994, J. Bus. Tech. Commun. 10.1177/1050651994008003007 1994   0   3
+5   GRIFFETH RW, 1994, J. Bus. Tech. Commun. 10.1177/1050651994008003003 1994   0   3
+6     KOSSEK EE, 1994, J. Bus. Tech. Commun. 10.1177/1050651994008003004 1994   0  12
+7   LIMAYE MR, 1994, J. Bus. Tech. Commun.-a 10.1177/1050651994008003001 1994   0   0
+8     THOMAS SG, 1995, J. Bus. Tech. Commun. 10.1177/1050651995009004004 1995   0   5
+9      GOLEN SP, 1995, J. Bus. Tech. Commun. 10.1177/1050651995009003003 1995   0   0
+10      MIREL B, 1995, J. Bus. Tech. Commun. 10.1177/1050651995009003001 1995   0   6</code></pre>
+</div>
+</div>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">DF</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bibliometrix/man/dominance.html">dominance</a></span><span class="op">(</span><span class="va">results</span>, k <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span><span class="va">DF</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stdout">
+<pre><code>         Author Dominance Factor Tot Articles Single-Authored Multi-Authored First-Authored Rank by Articles Rank by DF
+1  MACKIEWICZ J        0.6000000           16              11              5              3                1          1
+2      FRIESS E        0.6000000           13               8              5              3                7          1
+3    SPINUZZI C        0.5555556           16               7              9              5                1          3
+4     GRAHAM SS        0.5555556           11               2              9              5                9          3
+5    CARLINER S        0.5000000           16              12              4              2                1          5
+6    MELONCON L        0.4444444           14               5              9              4                5          6
+7      WALTON R        0.4000000           12               2             10              4                8          7
+8     DE JONG M        0.3636364           11               0             11              4                9          8
+9     MALONE EA        0.3333333           11               5              6              2                9          9
+10        LAM C        0.2857143           14               7              7              2                5         10
+11  DE JONG MDT        0.2500000           16               0             16              4                1         11
+12   KARREMAN J        0.1818182           11               0             11              2                9         12</code></pre>
+</div>
+</div>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb26"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">topAU</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bibliometrix/man/authorProdOverTime.html">authorProdOverTime</a></span><span class="op">(</span><span class="va">M</span>, k <span class="op">=</span> <span class="fl">20</span>, graph <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
+<p><img src="wk09_tidy_networks_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">topAU</span><span class="op">$</span><span class="va">dfAU</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stdout">
+<pre><code>       Author year freq TC      TCpY
+1    BATOVA T 2010    1 11 0.7857143
+2    BATOVA T 2015    2 34 3.7777778
+3    BATOVA T 2018    3 25 4.1666667
+4    BATOVA T 2019    1  1 0.2000000
+5    BATOVA T 2021    2 13 4.3333333
+6 BOETTGER RK 2010    2 77 5.5000000</code></pre>
+</div>
+</div>
+</section></section><section id="co-citation" class="level2"><h2 class="anchored" data-anchor-id="co-citation">Co-Citation</h2>
+<div class="cell">
+<details><summary>Code</summary><div class="sourceCode" id="cb29"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">NetMatrix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bibliometrix/man/biblioNetwork.html">biblioNetwork</a></span><span class="op">(</span><span class="va">M</span>, analysis <span class="op">=</span> <span class="st">"co-citation"</span>, network <span class="op">=</span> <span class="st">"references"</span>, sep <span class="op">=</span> <span class="st">";"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## Plot the network</span></span>
+<span><span class="va">net</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/bibliometrix/man/networkPlot.html">networkPlot</a></span><span class="op">(</span><span class="va">NetMatrix</span>,</span>
+<span>                n <span class="op">=</span> <span class="fl">25</span>, </span>
+<span>                Title <span class="op">=</span> <span class="st">"Co-Citation Network"</span>, </span>
+<span>                type <span class="op">=</span> <span class="st">"fruchterman"</span>, </span>
+<span>                size<span class="op">=</span><span class="cn">T</span>,</span>
+<span>                label.cex<span class="op">=</span><span class="cn">TRUE</span>,</span>
+<span>                label.color<span class="op">=</span><span class="cn">TRUE</span>,</span>
+<span>                halo<span class="op">=</span><span class="cn">FALSE</span>,</span>
+<span>                remove.multiple<span class="op">=</span><span class="cn">FALSE</span>, </span>
+<span>                labelsize<span class="op">=</span><span class="fl">.7</span>,</span>
+<span>                edgesize <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>                cluster <span class="op">=</span> <span class="st">"none"</span>,</span>
+<span>                community.repulsion <span class="op">=</span> <span class="fl">.3</span>,</span>
+<span>                edges.min <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output-display">
+<p><img src="wk09_tidy_networks_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+
+
+<!-- -->
+
+</section></section><a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  let localAlternateSentinel = 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb30" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Wk 09: Network Analysis"</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="fu">## Overview: Network Analysis </span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>Web of Science Queries (articles only)</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="co">[</span><span class="ot">Technical Communication Quarterly</span><span class="co">](https://www.webofscience.com/wos/woscc/summary/6c31f851-fec2-4b2b-8003-01b6f836bbac-afc4d4e3/relevance/1)</span></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="co">[</span><span class="ot">IEEE Transactions on Professional Communication</span><span class="co">](https://www.webofscience.com/wos/woscc/summary/13106b03-1f1a-4c9e-a2c9-03080436c96e-afc513aa/relevance/1)</span></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="co">[</span><span class="ot">Journal of Business and Technical Communication</span><span class="co">](https://www.webofscience.com/wos/woscc/summary/840d8fbb-d74a-4b94-ba44-eded28ce8cbb-afc883f2/relevance/1)</span></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="co">[</span><span class="ot">Technical Communication</span><span class="co">](https://www.webofscience.com/wos/woscc/summary/1b978d9b-135d-4b10-b377-b7340f59d9ef-afc88e9b/relevance/1)</span></span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>Other resources:</span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span><span class="co">[</span><span class="ot">Article that presents a tutorial for Bibliometrix</span><span class="co">](https://dergipark.org.tr/en/download/article-file/2237066)</span></span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a><span class="fu">## Key library: Bibliometrix</span></span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Bibliometrix</span><span class="co">](https://www.bibliometrix.org/home/)</span></span>
+<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb30-28"><a href="#cb30-28" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
+<span id="cb30-29"><a href="#cb30-29" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bibliometrix)</span>
+<span id="cb30-30"><a href="#cb30-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-31"><a href="#cb30-31" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-32"><a href="#cb30-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-33"><a href="#cb30-33" aria-hidden="true" tabindex="-1"></a>To use biblioshiny (Graphical interface built with RShiny)</span>
+<span id="cb30-36"><a href="#cb30-36" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-37"><a href="#cb30-37" aria-hidden="true" tabindex="-1"></a><span class="co">#library(bibliometrix)</span></span>
+<span id="cb30-38"><a href="#cb30-38" aria-hidden="true" tabindex="-1"></a><span class="co">#biblioshiny()</span></span>
+<span id="cb30-39"><a href="#cb30-39" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-40"><a href="#cb30-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-41"><a href="#cb30-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-42"><a href="#cb30-42" aria-hidden="true" tabindex="-1"></a><span class="fu">## Convert .bib to dataframes</span></span>
+<span id="cb30-43"><a href="#cb30-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-44"><a href="#cb30-44" aria-hidden="true" tabindex="-1"></a>Set file locations</span>
+<span id="cb30-47"><a href="#cb30-47" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-48"><a href="#cb30-48" aria-hidden="true" tabindex="-1"></a>tcq <span class="ot">&lt;-</span> <span class="st">"data/wos-tcq.bib"</span></span>
+<span id="cb30-49"><a href="#cb30-49" aria-hidden="true" tabindex="-1"></a>ieee <span class="ot">&lt;-</span> <span class="st">"data/wos-ieee.bib"</span></span>
+<span id="cb30-50"><a href="#cb30-50" aria-hidden="true" tabindex="-1"></a>jbtc <span class="ot">&lt;-</span> <span class="st">"data/wos-jbtc.bib"</span></span>
+<span id="cb30-51"><a href="#cb30-51" aria-hidden="true" tabindex="-1"></a>tc <span class="ot">&lt;-</span> <span class="st">"data/wos-tc.bib"</span></span>
+<span id="cb30-52"><a href="#cb30-52" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-53"><a href="#cb30-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-54"><a href="#cb30-54" aria-hidden="true" tabindex="-1"></a>Convert each bib file to a dataframe</span>
+<span id="cb30-55"><a href="#cb30-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-58"><a href="#cb30-58" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-59"><a href="#cb30-59" aria-hidden="true" tabindex="-1"></a><span class="co">#help(convert2df)</span></span>
+<span id="cb30-60"><a href="#cb30-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-61"><a href="#cb30-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-62"><a href="#cb30-62" aria-hidden="true" tabindex="-1"></a><span class="co"># TCQ</span></span>
+<span id="cb30-63"><a href="#cb30-63" aria-hidden="true" tabindex="-1"></a>df_tcq <span class="ot">&lt;-</span> <span class="fu">convert2df</span>(<span class="at">file =</span> tcq,</span>
+<span id="cb30-64"><a href="#cb30-64" aria-hidden="true" tabindex="-1"></a>                  <span class="at">dbsource =</span> <span class="st">"wos"</span>,</span>
+<span id="cb30-65"><a href="#cb30-65" aria-hidden="true" tabindex="-1"></a>                  <span class="at">format =</span> <span class="st">"bibtex"</span>)</span>
+<span id="cb30-66"><a href="#cb30-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-67"><a href="#cb30-67" aria-hidden="true" tabindex="-1"></a><span class="co"># IEEE</span></span>
+<span id="cb30-68"><a href="#cb30-68" aria-hidden="true" tabindex="-1"></a>df_ieee <span class="ot">&lt;-</span> <span class="fu">convert2df</span>(<span class="at">file =</span> ieee,</span>
+<span id="cb30-69"><a href="#cb30-69" aria-hidden="true" tabindex="-1"></a>                  <span class="at">dbsource =</span> <span class="st">"wos"</span>,</span>
+<span id="cb30-70"><a href="#cb30-70" aria-hidden="true" tabindex="-1"></a>                  <span class="at">format =</span> <span class="st">"bibtex"</span>)</span>
+<span id="cb30-71"><a href="#cb30-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-72"><a href="#cb30-72" aria-hidden="true" tabindex="-1"></a><span class="co"># JBTC</span></span>
+<span id="cb30-73"><a href="#cb30-73" aria-hidden="true" tabindex="-1"></a>df_jbtc <span class="ot">&lt;-</span> <span class="fu">convert2df</span>(<span class="at">file =</span> jbtc,</span>
+<span id="cb30-74"><a href="#cb30-74" aria-hidden="true" tabindex="-1"></a>                  <span class="at">dbsource =</span> <span class="st">"wos"</span>,</span>
+<span id="cb30-75"><a href="#cb30-75" aria-hidden="true" tabindex="-1"></a>                  <span class="at">format =</span> <span class="st">"bibtex"</span>)</span>
+<span id="cb30-76"><a href="#cb30-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-77"><a href="#cb30-77" aria-hidden="true" tabindex="-1"></a><span class="co"># TC</span></span>
+<span id="cb30-78"><a href="#cb30-78" aria-hidden="true" tabindex="-1"></a>df_tc <span class="ot">&lt;-</span> <span class="fu">convert2df</span>(<span class="at">file =</span> tc,</span>
+<span id="cb30-79"><a href="#cb30-79" aria-hidden="true" tabindex="-1"></a>                  <span class="at">dbsource =</span> <span class="st">"wos"</span>,</span>
+<span id="cb30-80"><a href="#cb30-80" aria-hidden="true" tabindex="-1"></a>                  <span class="at">format =</span> <span class="st">"bibtex"</span>)</span>
+<span id="cb30-81"><a href="#cb30-81" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-82"><a href="#cb30-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-83"><a href="#cb30-83" aria-hidden="true" tabindex="-1"></a>Combine the resulting dataframes</span>
+<span id="cb30-84"><a href="#cb30-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-87"><a href="#cb30-87" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-88"><a href="#cb30-88" aria-hidden="true" tabindex="-1"></a>M <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb30-89"><a href="#cb30-89" aria-hidden="true" tabindex="-1"></a>  df_ieee,</span>
+<span id="cb30-90"><a href="#cb30-90" aria-hidden="true" tabindex="-1"></a>  df_jbtc,</span>
+<span id="cb30-91"><a href="#cb30-91" aria-hidden="true" tabindex="-1"></a>  df_tc,</span>
+<span id="cb30-92"><a href="#cb30-92" aria-hidden="true" tabindex="-1"></a>  df_tcq</span>
+<span id="cb30-93"><a href="#cb30-93" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb30-94"><a href="#cb30-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-95"><a href="#cb30-95" aria-hidden="true" tabindex="-1"></a><span class="co">#write_rds(M, "data/comb.rds")</span></span>
+<span id="cb30-96"><a href="#cb30-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-97"><a href="#cb30-97" aria-hidden="true" tabindex="-1"></a><span class="co">#install.packages("bib2df")</span></span>
+<span id="cb30-98"><a href="#cb30-98" aria-hidden="true" tabindex="-1"></a><span class="co">#library(bib2df)</span></span>
+<span id="cb30-99"><a href="#cb30-99" aria-hidden="true" tabindex="-1"></a><span class="co">#df2bib(M, "data/comb.bib")</span></span>
+<span id="cb30-100"><a href="#cb30-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-101"><a href="#cb30-101" aria-hidden="true" tabindex="-1"></a><span class="co">#write_csv(M, "data/comb.csv")</span></span>
+<span id="cb30-102"><a href="#cb30-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-103"><a href="#cb30-103" aria-hidden="true" tabindex="-1"></a><span class="co"># get subset for analysis</span></span>
+<span id="cb30-104"><a href="#cb30-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-105"><a href="#cb30-105" aria-hidden="true" tabindex="-1"></a>M <span class="ot">&lt;-</span> M <span class="sc">%&gt;%</span></span>
+<span id="cb30-106"><a href="#cb30-106" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(PY <span class="sc">&gt;</span> <span class="dv">1992</span>)</span>
+<span id="cb30-107"><a href="#cb30-107" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-108"><a href="#cb30-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-109"><a href="#cb30-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-112"><a href="#cb30-112" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-113"><a href="#cb30-113" aria-hidden="true" tabindex="-1"></a><span class="co"># run a stock analysis (generates a list of dataframes)</span></span>
+<span id="cb30-114"><a href="#cb30-114" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">biblioAnalysis</span>(M, <span class="at">sep =</span> <span class="st">";"</span>)</span>
+<span id="cb30-115"><a href="#cb30-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-116"><a href="#cb30-116" aria-hidden="true" tabindex="-1"></a><span class="co"># create a summary of the results</span></span>
+<span id="cb30-117"><a href="#cb30-117" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">width=</span><span class="dv">100</span>)</span>
+<span id="cb30-118"><a href="#cb30-118" aria-hidden="true" tabindex="-1"></a>S <span class="ot">&lt;-</span> <span class="fu">summary</span>(<span class="at">object =</span> results, <span class="at">k =</span> <span class="dv">10</span>, <span class="at">pause =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb30-119"><a href="#cb30-119" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-120"><a href="#cb30-120" aria-hidden="true" tabindex="-1"></a><span class="fu"># Plot results</span></span>
+<span id="cb30-121"><a href="#cb30-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-124"><a href="#cb30-124" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-125"><a href="#cb30-125" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="at">x =</span> results, <span class="at">k =</span> <span class="dv">10</span>, <span class="at">pause =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb30-126"><a href="#cb30-126" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-127"><a href="#cb30-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-128"><a href="#cb30-128" aria-hidden="true" tabindex="-1"></a><span class="fu">## Citation analysis</span></span>
+<span id="cb30-129"><a href="#cb30-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-130"><a href="#cb30-130" aria-hidden="true" tabindex="-1"></a>Most cited articles</span>
+<span id="cb30-131"><a href="#cb30-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-134"><a href="#cb30-134" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-135"><a href="#cb30-135" aria-hidden="true" tabindex="-1"></a><span class="co"># Get citations</span></span>
+<span id="cb30-136"><a href="#cb30-136" aria-hidden="true" tabindex="-1"></a>CR <span class="ot">&lt;-</span> <span class="fu">citations</span>(M, <span class="at">field =</span> <span class="st">"article"</span>, <span class="at">sep =</span> <span class="st">";"</span>)</span>
+<span id="cb30-137"><a href="#cb30-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-138"><a href="#cb30-138" aria-hidden="true" tabindex="-1"></a><span class="co"># Top 50 most cited articles</span></span>
+<span id="cb30-139"><a href="#cb30-139" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(CR<span class="sc">$</span>Cited[<span class="dv">1</span><span class="sc">:</span><span class="dv">50</span>])</span>
+<span id="cb30-140"><a href="#cb30-140" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-141"><a href="#cb30-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-142"><a href="#cb30-142" aria-hidden="true" tabindex="-1"></a>Most cited first authors</span>
+<span id="cb30-143"><a href="#cb30-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-146"><a href="#cb30-146" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-147"><a href="#cb30-147" aria-hidden="true" tabindex="-1"></a>CR <span class="ot">&lt;-</span> <span class="fu">citations</span>(M, <span class="at">field =</span> <span class="st">"author"</span>, <span class="at">sep =</span> <span class="st">";"</span>)</span>
+<span id="cb30-148"><a href="#cb30-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-149"><a href="#cb30-149" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(CR<span class="sc">$</span>Cited[<span class="dv">1</span><span class="sc">:</span><span class="dv">25</span>])</span>
+<span id="cb30-150"><a href="#cb30-150" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-151"><a href="#cb30-151" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-152"><a href="#cb30-152" aria-hidden="true" tabindex="-1"></a><span class="fu">### Local citations</span></span>
+<span id="cb30-153"><a href="#cb30-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-154"><a href="#cb30-154" aria-hidden="true" tabindex="-1"></a>Not working :(</span>
+<span id="cb30-157"><a href="#cb30-157" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-158"><a href="#cb30-158" aria-hidden="true" tabindex="-1"></a>CR <span class="ot">&lt;-</span> <span class="fu">localCitations</span>(M, <span class="at">sep =</span> <span class="st">";"</span>)</span>
+<span id="cb30-159"><a href="#cb30-159" aria-hidden="true" tabindex="-1"></a>CR<span class="sc">$</span>Authors[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, ]</span>
+<span id="cb30-160"><a href="#cb30-160" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-161"><a href="#cb30-161" aria-hidden="true" tabindex="-1"></a>Not working :(</span>
+<span id="cb30-164"><a href="#cb30-164" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-165"><a href="#cb30-165" aria-hidden="true" tabindex="-1"></a>CR<span class="sc">$</span>Papers[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,]</span>
+<span id="cb30-166"><a href="#cb30-166" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-169"><a href="#cb30-169" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-170"><a href="#cb30-170" aria-hidden="true" tabindex="-1"></a>DF <span class="ot">&lt;-</span> <span class="fu">dominance</span>(results, <span class="at">k =</span> <span class="dv">12</span>)</span>
+<span id="cb30-171"><a href="#cb30-171" aria-hidden="true" tabindex="-1"></a>DF</span>
+<span id="cb30-172"><a href="#cb30-172" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-173"><a href="#cb30-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-176"><a href="#cb30-176" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-177"><a href="#cb30-177" aria-hidden="true" tabindex="-1"></a>topAU <span class="ot">&lt;-</span> <span class="fu">authorProdOverTime</span>(M, <span class="at">k =</span> <span class="dv">20</span>, <span class="at">graph =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb30-178"><a href="#cb30-178" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-181"><a href="#cb30-181" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-182"><a href="#cb30-182" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(topAU<span class="sc">$</span>dfAU)</span>
+<span id="cb30-183"><a href="#cb30-183" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-184"><a href="#cb30-184" aria-hidden="true" tabindex="-1"></a><span class="fu">## Co-Citation</span></span>
+<span id="cb30-185"><a href="#cb30-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-188"><a href="#cb30-188" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-189"><a href="#cb30-189" aria-hidden="true" tabindex="-1"></a>NetMatrix <span class="ot">&lt;-</span> <span class="fu">biblioNetwork</span>(M, <span class="at">analysis =</span> <span class="st">"co-citation"</span>, <span class="at">network =</span> <span class="st">"references"</span>, <span class="at">sep =</span> <span class="st">";"</span>)</span>
+<span id="cb30-190"><a href="#cb30-190" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-191"><a href="#cb30-191" aria-hidden="true" tabindex="-1"></a><span class="do">## Plot the network</span></span>
+<span id="cb30-192"><a href="#cb30-192" aria-hidden="true" tabindex="-1"></a>net<span class="ot">=</span><span class="fu">networkPlot</span>(NetMatrix,</span>
+<span id="cb30-193"><a href="#cb30-193" aria-hidden="true" tabindex="-1"></a>                <span class="at">n =</span> <span class="dv">25</span>, </span>
+<span id="cb30-194"><a href="#cb30-194" aria-hidden="true" tabindex="-1"></a>                <span class="at">Title =</span> <span class="st">"Co-Citation Network"</span>, </span>
+<span id="cb30-195"><a href="#cb30-195" aria-hidden="true" tabindex="-1"></a>                <span class="at">type =</span> <span class="st">"fruchterman"</span>, </span>
+<span id="cb30-196"><a href="#cb30-196" aria-hidden="true" tabindex="-1"></a>                <span class="at">size=</span>T,</span>
+<span id="cb30-197"><a href="#cb30-197" aria-hidden="true" tabindex="-1"></a>                <span class="at">label.cex=</span><span class="cn">TRUE</span>,</span>
+<span id="cb30-198"><a href="#cb30-198" aria-hidden="true" tabindex="-1"></a>                <span class="at">label.color=</span><span class="cn">TRUE</span>,</span>
+<span id="cb30-199"><a href="#cb30-199" aria-hidden="true" tabindex="-1"></a>                <span class="at">halo=</span><span class="cn">FALSE</span>,</span>
+<span id="cb30-200"><a href="#cb30-200" aria-hidden="true" tabindex="-1"></a>                <span class="at">remove.multiple=</span><span class="cn">FALSE</span>, </span>
+<span id="cb30-201"><a href="#cb30-201" aria-hidden="true" tabindex="-1"></a>                <span class="at">labelsize=</span>.<span class="dv">7</span>,</span>
+<span id="cb30-202"><a href="#cb30-202" aria-hidden="true" tabindex="-1"></a>                <span class="at">edgesize =</span> <span class="dv">3</span>,</span>
+<span id="cb30-203"><a href="#cb30-203" aria-hidden="true" tabindex="-1"></a>                <span class="at">cluster =</span> <span class="st">"none"</span>,</span>
+<span id="cb30-204"><a href="#cb30-204" aria-hidden="true" tabindex="-1"></a>                <span class="at">community.repulsion =</span> .<span class="dv">3</span>,</span>
+<span id="cb30-205"><a href="#cb30-205" aria-hidden="true" tabindex="-1"></a>                <span class="at">edges.min =</span> <span class="dv">1</span>)</span>
+<span id="cb30-206"><a href="#cb30-206" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-207"><a href="#cb30-207" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-208"><a href="#cb30-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-209"><a href="#cb30-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-210"><a href="#cb30-210" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-211"><a href="#cb30-211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-212"><a href="#cb30-212" aria-hidden="true" tabindex="-1"></a></span>
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+</body></html>

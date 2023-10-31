@@ -1,0 +1,184 @@
+---
+title: "Wk 09: Network Analysis"
+---
+
+
+
+## Overview: Network Analysis 
+
+Web of Science Queries (articles only)
+
+* [Technical Communication Quarterly](https://www.webofscience.com/wos/woscc/summary/6c31f851-fec2-4b2b-8003-01b6f836bbac-afc4d4e3/relevance/1)
+* [IEEE Transactions on Professional Communication](https://www.webofscience.com/wos/woscc/summary/13106b03-1f1a-4c9e-a2c9-03080436c96e-afc513aa/relevance/1)
+* [Journal of Business and Technical Communication](https://www.webofscience.com/wos/woscc/summary/840d8fbb-d74a-4b94-ba44-eded28ce8cbb-afc883f2/relevance/1)
+* [Technical Communication](https://www.webofscience.com/wos/woscc/summary/1b978d9b-135d-4b10-b377-b7340f59d9ef-afc88e9b/relevance/1)
+
+Other resources:
+
+* [Article that presents a tutorial for Bibliometrix](https://dergipark.org.tr/en/download/article-file/2237066)
+
+## Key library: Bibliometrix
+
+[Bibliometrix](https://www.bibliometrix.org/home/)
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(bibliometrix)
+
+```
+
+To use biblioshiny (Graphical interface built with RShiny)
+```{r}
+#library(bibliometrix)
+#biblioshiny()
+```
+
+
+## Convert .bib to dataframes
+
+Set file locations
+```{r}
+tcq <- "data/wos-tcq.bib"
+ieee <- "data/wos-ieee.bib"
+jbtc <- "data/wos-jbtc.bib"
+tc <- "data/wos-tc.bib"
+```
+
+Convert each bib file to a dataframe
+
+```{r}
+#help(convert2df)
+
+
+# TCQ
+df_tcq <- convert2df(file = tcq,
+                  dbsource = "wos",
+                  format = "bibtex")
+
+# IEEE
+df_ieee <- convert2df(file = ieee,
+                  dbsource = "wos",
+                  format = "bibtex")
+
+# JBTC
+df_jbtc <- convert2df(file = jbtc,
+                  dbsource = "wos",
+                  format = "bibtex")
+
+# TC
+df_tc <- convert2df(file = tc,
+                  dbsource = "wos",
+                  format = "bibtex")
+```
+
+Combine the resulting dataframes
+
+```{r}
+M <- bind_rows(
+  df_ieee,
+  df_jbtc,
+  df_tc,
+  df_tcq
+)
+
+#write_rds(M, "data/comb.rds")
+
+#install.packages("bib2df")
+#library(bib2df)
+#df2bib(M, "data/comb.bib")
+
+#write_csv(M, "data/comb.csv")
+
+# get subset for analysis
+
+M <- M %>%
+  filter(PY > 1992)
+```
+
+
+```{r}
+# run a stock analysis (generates a list of dataframes)
+results <- biblioAnalysis(M, sep = ";")
+
+# create a summary of the results
+options(width=100)
+S <- summary(object = results, k = 10, pause = FALSE)
+```
+# Plot results
+
+```{r}
+plot(x = results, k = 10, pause = FALSE)
+```
+
+## Citation analysis
+
+Most cited articles
+
+```{r}
+# Get citations
+CR <- citations(M, field = "article", sep = ";")
+
+# Top 50 most cited articles
+cbind(CR$Cited[1:50])
+```
+
+Most cited first authors
+
+```{r}
+CR <- citations(M, field = "author", sep = ";")
+
+cbind(CR$Cited[1:25])
+```
+
+### Local citations
+
+Not working :(
+```{r}
+CR <- localCitations(M, sep = ";")
+CR$Authors[1:10, ]
+```
+Not working :(
+```{r}
+CR$Papers[1:10,]
+```
+```{r}
+DF <- dominance(results, k = 12)
+DF
+```
+
+```{r}
+topAU <- authorProdOverTime(M, k = 20, graph = TRUE)
+```
+```{r}
+head(topAU$dfAU)
+```
+## Co-Citation
+
+```{r}
+
+NetMatrix <- biblioNetwork(M, analysis = "co-citation", network = "references", sep = ";")
+
+## Plot the network
+net=networkPlot(NetMatrix,
+                n = 25, 
+                Title = "Co-Citation Network", 
+                type = "fruchterman", 
+                size=T,
+                label.cex=TRUE,
+                label.color=TRUE,
+                halo=FALSE,
+                remove.multiple=FALSE, 
+                labelsize=.7,
+                edgesize = 3,
+                cluster = "none",
+                community.repulsion = .3,
+                edges.min = 1)
+
+```
+
+
+
+
+
+

@@ -1,0 +1,122 @@
+---
+title: "Wk 09: Network Analysis, pt 2"
+---
+
+```{r}
+library(tidyverse)
+library(bibliometrix)
+library(stringr)
+```
+
+
+Read in combined data
+
+```{r}
+M <- read_rds("data/comb.rds")
+```
+
+
+## Create subsets for analysis
+
+We can manipulate the data here and then explore further with bibliometrix.
+
+Here is a list of [WOS/Bibliometrix tags](https://www.bibliometrix.org/documents/Field_Tags_bibliometrix.pdf), for reference. Some key tags:
+
+* PY: publication year
+* TI: document title
+* AU: authors
+* DE: author-supplied keywords
+* AB: abstract
+* CR: list of cited references
+* NR: count of cited references
+
+### Filter articles by publication year
+
+```{r}
+# Only articles after 1992
+
+post92 <- M %>%
+  filter(PY > 1992)
+
+```
+
+
+### Filter articles by "word" in title
+
+```{r}
+word <- "ethics"
+
+ethics <- M %>%
+  filter(str_detect(TI, regex(word, ignore_case = TRUE)))
+
+
+```
+
+### Filter articles by one or more words in abstract
+
+```{r}
+search_terms <- c("Aristotle", "Plato", "Socrates")  # List of words to check for
+
+# create a regular expression pattern by pasting the search terms together and separating them with \\b|\\b. The \\b is a word boundary anchor, ensuring that we match whole words or phrases rather than substrings 
+pattern <- paste0("\\b", paste(search_terms, collapse = "\\b|\\b"), "\\b")
+
+greeks <- M %>%
+  filter(str_detect(AB, regex(pattern, ignore_case = TRUE)))
+
+greeks$AB
+```
+
+### Filter articles that contain one of the keywords in either title or abstract
+
+```{r}
+search_words <- c("Intersectionality", "Intersectional")
+
+# Filter the data frame to select rows with at least one word from the list in column1 or column2
+intersectional <- M %>% 
+  rowwise() %>%
+  filter(any(str_detect(c(TI, AB), regex(paste(search_words, collapse = "|"), ignore_case = TRUE))))
+
+intersectional$TI
+         
+```
+
+## Explore new data in bibliometrix
+
+Take the result of your filtering and analyze it!
+
+### Stock descriptive analysis
+
+```{r}
+# run a stock analysis (generates a list of dataframes)
+results <- biblioAnalysis(intersectional, sep = ";")
+
+# create a summary of the results
+options(width=100)
+S <- summary(object = results, k = 10, pause = FALSE)
+```
+```{r}
+#plot(x = results, k = 10, pause = FALSE)
+```
+### Citation analysis
+
+When writing about intersectionality, who do TC authors cite?
+
+#### Most cited articles
+
+```{r}
+# Get citations
+CR <- citations(intersectional, field = "article", sep = ";")
+
+# Top 50 most cited articles
+cbind(CR$Cited[1:50])
+```
+#### Most cited first authors
+
+```{r}
+CR <- citations(intersectional, field = "author", sep = ";")
+
+cbind(CR$Cited[1:20])
+```
+
+
+
