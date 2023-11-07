@@ -1,0 +1,401 @@
+---
+title: "Wk 10: Reddit API"
+execute:
+  eval: false
+---
+
+## Overview
+
+Using RedditExtractoR to collect data from the reddit API.
+
+### Reddit API
+
+### RedditExtractoR
+
+-   [RedditExtractoR documentation on Github](https://github.com/ivan-rivera/RedditExtractor)
+
+### Additional Resources
+
+-   [Youtube tutorial on RedditExtractoR (16min, James Cook)](https://www.youtube.com/watch?v=Snm0Azfi_hc&t=17s)
+
+## Collecting data
+
+### libraries
+
+```{r}
+#install.packages("RedditExtractoR")
+library(RedditExtractoR)
+```
+
+### Get thread metadata
+
+Some key arguments in find_thread_urls:
+
+-   **subreddit.** This allows us to find the thread URLs for a particular subreddit. Alternatively, we could have used `keywords = "keyword"` to get posts by keyword instead of subreddit.
+-   **sort_by.** Here we designate the sorting method we want to apply to our search.
+    -   keyword search sort options: relevance, comments, new, hot, top
+    -   non-keyword search sort options: hot, new, top, rising
+-   **period.** Timeframe of results. Options: hour, day, week, month, year, all
+
+```{r}
+my_threads <- find_thread_urls(
+  subreddit = "Professors",
+  sort_by = "new",
+  period = "week"
+)
+
+glimpse(my_threads)
+```
+
+### Get thread comments
+
+::: callout-warning
+`get_thread_content()` can take a LONG time, depending on the number of URLs and the size of the corresponding threads.
+:::
+
+```{r}
+my_comments <- get_thread_content(
+  my_threads$url
+)
+
+glimpse(my_comments)
+```
+
+The reddit API will limit how many comments we can grab from each thread. Let's check how many comments we have in our threads.
+
+```{r}
+library(ggplot2)
+library(ggthemes)
+
+# Create a histogram
+ggplot(my_threads, aes(x = comments)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Distribution of Number of Comments", x = "Number of Comments", y = "Frequency") +
+  theme_minimal()
+```
+
+### Join my_threads and my_comments$comments
+
+```{r}
+my_both <- my_threads %>%
+  left_join(my_comments$comments, by = "url")
+
+glimpse(my_both)
+```
+
+### trying more URLs
+
+```{r}
+my_threads_all <- find_thread_urls(
+  subreddit = "Professors",
+  sort_by = "new",
+  period = "all"
+)
+
+glimpse(my_threads_all)
+```
+
+```{r}
+my_threads_profgpt <- find_thread_urls(
+  subreddit = "Professors",
+  keywords = "chatgpt",
+  sort_by = "new",
+  period = "all"
+)
+
+glimpse(my_threads_profsgpt)
+```
+
+### Finding subreddits
+
+If we want multiple subreddits, there's a function called `find_subreddits()` that allows us to search for relevant subreddits based on keywords.
+
+```{r}
+help("find_subreddits")
+my_subreddits <- find_subreddits("food stamps")
+
+glimpse(my_subreddits)
+```
+
+We can get a list of the subreddit names that the keyword search turned up:
+
+```{r}
+my_subreddits$subreddit
+```
+
+We could in theory perform `find_thread_urls()` on all of them, but we'll just target a few:
+
+```{r}
+target_subreddits <- c("Conservative",
+                       "Libertarian",
+                       "progressive",
+                       "democrats",
+                       "Liberal")
+target_subreddits
+```
+
+## Getting a big dataset
+
+Maybe we can abide by the API limits and still get a pretty sizeable dataset? 
+
+### Using purrr to `find_thread_urls`
+
+Here, we use the map function from the tidyverse library purr to politely iterate over a list of subreddits
+
+In the code below, we:
+
+1. define a list of subreddits
+2. create a function that:
+  1. performs `find_thread_urls` on a target subreddit (with keywords, sort, and period parameters)
+  2. Prints to the console what subreddit the function is working on
+  3. defines an amount of time between 3 and 7 seconds and then waits that amount of time before proceeding to the next subreddit
+  4. returns the result
+3. we use purrr::map to apply that function to each subreddit in our list of target subreddits
+4. finally, we combine our results for each subreddit into a single dataframe
+  
+
+```{r}
+library(purrr)
+
+# Define the vector of subreddit names
+target_subreddits <- c("Conservative", "Libertarian", "progressive", "democrats", "Liberal")
+
+# Initialize an empty list to store the results
+results_list <- list()
+
+# Define the function to process a single subreddit 
+process_subreddit <- function(subreddit) {
+  
+  find_threads <- find_thread_urls(
+    subreddit = subreddit,
+    keywords = "food stamps",
+    sort_by = "new",
+    period = "all"
+  )
+  
+  cat("Processing subreddit:", subreddit, "\n")
+  
+  # Generate a random sleep duration between 3 and 7 seconds
+  sleep_duration <- runif(1, min = 6, max = 7)
+  cat("Sleeping for", sleep_duration, "seconds\n")
+  Sys.sleep(sleep_duration)
+  
+  # Return the result
+  return(find_threads)
+}
+
+# Use purrr::map to apply the function to each subreddit name
+results_list <- map(target_subreddits, process_subreddit)
+
+# Combine the results into a single dataframe
+target_results <- bind_rows(results_list)
+
+```
+
+Now target_results contains the results for all our target subreddits in a single dataframe. We can save these out for later use, if needed.
+
+```{r}
+# Save out as needed
+#write_csv(target_results, "data/food_stamps/ideology_foodstamps.csv")
+#saveRDS(target_results, "data/food_stamps/ideology_foodstamps.rds")
+```
+
+
+Now we can visualize the results to see how many threads we collected from each subreddit in our list
+
+```{r}
+# Calculate the total number of threads for each subreddit
+subreddit_totals <- target_results %>%
+  group_by(subreddit) %>%
+  summarise(total_threads = n())
+
+# Create a bar plot with totals
+ggplot(subreddit_totals, aes(x = subreddit, y = total_threads)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = total_threads), vjust = -0.5, size = 3) +
+  labs(x = "Subreddit", y = "Number of Threads") +
+  ggtitle("Number of Threads Collected from Each Subreddit") +
+  theme_minimal()
+```
+
+
+
+### Using Purrr to `get_thread_content`
+
+If you need the data and have the time to collect it, we can use purr again. Instead of collecting all the threads for a given subreddit, pausing, and moving on to the next subreddit, this time we'll collect all the comments for a thread, pause, and then move on to the next thread. 
+
+::: callout-warning
+`get_thread_content()` can take a LONG time, depending on the number of URLs and the size of the corresponding threads.
+:::
+
+Just how big are the threads we're about to collect?
+
+```{r}
+# Create a histogram
+ggplot(target_results, aes(x = comments)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Distribution of Number of Comments", x = "Number of Thread Comments", y = "Frequency") +
+  theme_minimal()
+```
+
+Again, this next one would take a LONG time, e.g. over two hours for me to grab the comments for 835 threads. Instead, we'll start by testing on a subset.
+
+## Subset the data for testing
+
+### Generate a sample threads list
+
+```{r}
+set.seed(123) # Set a seed for reproducibility
+
+
+# Sample a specific number of rows from the data frame (e.g., 2%)
+sample_size <- 0.02 * nrow(target_results)
+
+# Create a new data frame with the random sample
+tr_sample <- target_results %>%
+  sample_n(size = sample_size, replace = FALSE)
+
+glimpse(tr_sample)
+```
+
+### Define the function to collect comments
+
+```{r}
+
+# Define the function to collect comments for a given URL
+collect_comments <- function(url) {
+  
+  # Call the get_thread_content function with the URL
+  content <- get_thread_content(url)
+  
+  # Check if content$comments is empty or NULL, and skip if it is
+  if (is.null(content$comments) || nrow(content$comments) == 0) {
+    cat("No comments found for URL:", url, "\n")
+    return(NULL)
+  }
+  
+  # Add the "thread_url" column with the URL value to content$comments
+  content$comments <- content$comments %>% mutate(thread_url = url)
+  
+  # Convert "comment_id" to character to ensure consistent data types
+  content$comments <- content$comments %>% mutate(comment_id = as.character(comment_id))
+  
+  # Introduce a random pause between 6-7 seconds
+  sleep_duration <- runif(1, min = 6, max = 7)
+  Sys.sleep(sleep_duration)
+  
+  # Return content$comments
+  return(content$comments)
+}
+
+# Use purrr::map to apply the function to each URL with a progress bar
+samp_comments_list <- map(tr_sample$url, collect_comments, .progress = "getting thread comments")
+
+# Filter out NULL elements (URLs with no comments)
+samp_comments_list <- samp_comments_list[!sapply(samp_comments_list, is.null)]
+
+# Combine all the comments data frames into a single data frame
+combined_comments <- bind_rows(samp_comments_list)
+
+# Now, combined_comments contains all the comments from different URLs
+
+# Filter out NULL elements (URLs with no comments)
+samp_comments_list <- samp_comments_list[!sapply(samp_comments_list, is.null)]
+
+# Combine all the comments data frames into a single data frame
+combined_comments <- bind_rows(samp_comments_list)
+
+# Now, combined_comments contains all the comments from different URLs
+
+```
+
+
+```{r}
+# Define the function to collect comments for a given URL
+collect_comments <- function(url) {
+  
+  # Call the get_thread_content function with the URL
+  content <- get_thread_content(url)
+  
+  
+  # Check if content$comments is empty or NULL, and skip if it is
+  if (is.null(content$comments) || nrow(content$comments) == 0) {
+    cat("No comments found for URL:", url, "\n")
+    return(NULL)
+  }
+  
+  # Add the "thread_url" column with the URL value
+  content$threads <- content$threads %>% mutate(thread_url = url)
+  content$comments <- content$comments %>% mutate(thread_url = url)
+  
+   # Perform an inner join based on the "thread_url" column
+  combined_data <- content$threads %>%
+    left_join(content$comments, by = "thread_url")
+  
+  # Generate a filename based on the "thread_url"
+  filename <- gsub("[^[:alnum:].]", "_", content$threads$thread_url)  # Clean the URL for a valid filename
+  
+  # Save the combined data as an RDS file with the thread_url as the filename
+  filename_with_extension <- paste0(filename, ".rds")
+  saveRDS(combined_data, file.path("output", filename_with_extension))
+  
+  # Introduce a random pause between 6-7 seconds
+  sleep_duration <- runif(1, min = 6, max = 7)
+  Sys.sleep(sleep_duration)
+  
+  
+  # Return the combined data frame
+  return(combined_data)
+
+}
+
+# Use purrr::map to apply the function to each URL with a progress bar
+samp_comments_list <- map(tr_sample$url, collect_comments, .progress = "getting thread comments")
+
+# Filter out NULL elements (URLs with no comments)
+samp_comments_list_nonull <- samp_comments_list[!sapply(samp_comments_list, is.null)]
+
+# Combine all the results into a single data frame
+combined_data_sample <- bind_rows(samp_comments_list_nonull)
+
+
+write_rds(samp_comments_list, "data/food_stamps_sample.rds")
+
+```
+
+```{r}
+# Set your output directory
+output_directory <- "output"
+
+# List all RDS files in the output directory
+rds_files <- list.files(output_directory, pattern = "\\.rds$", full.names = TRUE)
+
+# Initialize an empty list to store the data frames
+data_list <- list()
+
+# Loop through the RDS files and read them into data frames
+for (file in rds_files) {
+  data <- readRDS(file)
+  
+  # Convert "comment_id" to character
+  data <- data %>% mutate(comment_id = as.character(comment_id))
+  
+  data_list <- c(data_list, list(data))
+}
+
+# Combine all the data frames into a single data frame
+combined_data <- bind_rows(data_list)
+
+# Now, combined_data contains all the data from the RDS files in the output_directory
+In this modified code, we use mutate and as.character to ensure that the "comment_id" column is consistently of type character in all data frames before combining them with bind_rows. This should resolve the data type mismatch error.
+
+
+
+
+
+
+```
+
+
+
+
