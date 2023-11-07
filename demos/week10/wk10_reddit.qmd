@@ -1,6 +1,6 @@
 ---
 title: "Wk 10: Reddit API"
-execute:
+execute: 
   eval: false
 ---
 
@@ -25,6 +25,7 @@ Using RedditExtractoR to collect data from the reddit API.
 ```{r}
 #install.packages("RedditExtractoR")
 library(RedditExtractoR)
+library(tidyverse)
 ```
 
 ### Get thread metadata
@@ -111,7 +112,7 @@ glimpse(my_threads_profsgpt)
 If we want multiple subreddits, there's a function called `find_subreddits()` that allows us to search for relevant subreddits based on keywords.
 
 ```{r}
-help("find_subreddits")
+#help("find_subreddits")
 my_subreddits <- find_subreddits("food stamps")
 
 glimpse(my_subreddits)
@@ -258,143 +259,68 @@ tr_sample <- target_results %>%
 glimpse(tr_sample)
 ```
 
-### Define the function to collect comments
-
+### Adapted: define function to get comments *and thread title and url* from list of threads
 ```{r}
+### ADAPTED CODE
 
-# Define the function to collect comments for a given URL
-collect_comments <- function(url) {
-  
-  # Call the get_thread_content function with the URL
-  content <- get_thread_content(url)
-  
-  # Check if content$comments is empty or NULL, and skip if it is
-  if (is.null(content$comments) || nrow(content$comments) == 0) {
-    cat("No comments found for URL:", url, "\n")
+# Define the modified function to collect comments for a given URL
+collect_comments <- function(url, title) {
+  tryCatch({
+    # Call the get_thread_content function with the URL
+    content <- get_thread_content(url)
+    
+    # Check if content$comments is empty or NULL, and skip if it is
+    if (is.null(content$comments) || nrow(content$comments) == 0) {
+      cat("No comments found for URL:", url, "\n")
+      return(NULL)
+    }
+    
+    # Add the "thread_url" column with the URL value to content$comments
+    content$comments <- content$comments %>% mutate(thread_url = url)
+    
+    # Add the "thread_title" column with the title
+    content$comments <- content$comments %>% mutate(thread_title = title)
+    
+    
+    # Convert "comment_id" to character to ensure consistent data types
+    content$comments <- content$comments %>% mutate(comment_id = as.character(comment_id))
+    
+    # Introduce a random pause between 6-7 seconds
+    sleep_duration <- runif(1, min = 6, max = 7)
+    Sys.sleep(sleep_duration)
+    
+    # Return content$comments
+    return(content$comments)
+  }, error = function(e) {
+    cat("Error collecting comments for URL:", url, "\n")
     return(NULL)
-  }
-  
-  # Add the "thread_url" column with the URL value to content$comments
-  content$comments <- content$comments %>% mutate(thread_url = url)
-  
-  # Convert "comment_id" to character to ensure consistent data types
-  content$comments <- content$comments %>% mutate(comment_id = as.character(comment_id))
-  
-  # Introduce a random pause between 6-7 seconds
-  sleep_duration <- runif(1, min = 6, max = 7)
-  Sys.sleep(sleep_duration)
-  
-  # Return content$comments
-  return(content$comments)
+  })
 }
 
 # Use purrr::map to apply the function to each URL with a progress bar
-samp_comments_list <- map(tr_sample$url, collect_comments, .progress = "getting thread comments")
+samp_comments_list2 <- map2(tr_sample$url, tr_sample$title, collect_comments, .progress = "getting thread comments")
 
 # Filter out NULL elements (URLs with no comments)
-samp_comments_list <- samp_comments_list[!sapply(samp_comments_list, is.null)]
+samp_comments_list2 <- samp_comments_list2[!sapply(samp_comments_list2, is.null)]
 
 # Combine all the comments data frames into a single data frame
-combined_comments <- bind_rows(samp_comments_list)
-
-# Now, combined_comments contains all the comments from different URLs
-
-# Filter out NULL elements (URLs with no comments)
-samp_comments_list <- samp_comments_list[!sapply(samp_comments_list, is.null)]
-
-# Combine all the comments data frames into a single data frame
-combined_comments <- bind_rows(samp_comments_list)
-
-# Now, combined_comments contains all the comments from different URLs
-
+combined_comments <- bind_rows(samp_comments_list2)
 ```
 
+
+Let's see what we got
 
 ```{r}
-# Define the function to collect comments for a given URL
-collect_comments <- function(url) {
-  
-  # Call the get_thread_content function with the URL
-  content <- get_thread_content(url)
-  
-  
-  # Check if content$comments is empty or NULL, and skip if it is
-  if (is.null(content$comments) || nrow(content$comments) == 0) {
-    cat("No comments found for URL:", url, "\n")
-    return(NULL)
-  }
-  
-  # Add the "thread_url" column with the URL value
-  content$threads <- content$threads %>% mutate(thread_url = url)
-  content$comments <- content$comments %>% mutate(thread_url = url)
-  
-   # Perform an inner join based on the "thread_url" column
-  combined_data <- content$threads %>%
-    left_join(content$comments, by = "thread_url")
-  
-  # Generate a filename based on the "thread_url"
-  filename <- gsub("[^[:alnum:].]", "_", content$threads$thread_url)  # Clean the URL for a valid filename
-  
-  # Save the combined data as an RDS file with the thread_url as the filename
-  filename_with_extension <- paste0(filename, ".rds")
-  saveRDS(combined_data, file.path("output", filename_with_extension))
-  
-  # Introduce a random pause between 6-7 seconds
-  sleep_duration <- runif(1, min = 6, max = 7)
-  Sys.sleep(sleep_duration)
-  
-  
-  # Return the combined data frame
-  return(combined_data)
-
-}
-
-# Use purrr::map to apply the function to each URL with a progress bar
-samp_comments_list <- map(tr_sample$url, collect_comments, .progress = "getting thread comments")
-
-# Filter out NULL elements (URLs with no comments)
-samp_comments_list_nonull <- samp_comments_list[!sapply(samp_comments_list, is.null)]
-
-# Combine all the results into a single data frame
-combined_data_sample <- bind_rows(samp_comments_list_nonull)
-
-
-write_rds(samp_comments_list, "data/food_stamps_sample.rds")
-
+glimpse(combined_comments)
 ```
 
-```{r}
-# Set your output directory
-output_directory <- "output"
-
-# List all RDS files in the output directory
-rds_files <- list.files(output_directory, pattern = "\\.rds$", full.names = TRUE)
-
-# Initialize an empty list to store the data frames
-data_list <- list()
-
-# Loop through the RDS files and read them into data frames
-for (file in rds_files) {
-  data <- readRDS(file)
-  
-  # Convert "comment_id" to character
-  data <- data %>% mutate(comment_id = as.character(comment_id))
-  
-  data_list <- c(data_list, list(data))
-}
-
-# Combine all the data frames into a single data frame
-combined_data <- bind_rows(data_list)
-
-# Now, combined_data contains all the data from the RDS files in the output_directory
-In this modified code, we use mutate and as.character to ensure that the "comment_id" column is consistently of type character in all data frames before combining them with bind_rows. This should resolve the data type mismatch error.
 
 
 
 
 
 
-```
+
 
 
 
